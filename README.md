@@ -11,6 +11,10 @@
 
 **An end-to-end AI credit scoring platform for Indian SMEs — from loan application to explainable AI score, loan optimization, and lender decision — all in one system.**
 
+🚀 **Live Demo:**  
+👉 https://web-production-2b01d.up.railway.app/
+
+
 [Features](#-features) • [Tech Stack](#-tech-stack) • [Setup](#-local-setup) • [Architecture](#-architecture) • [ML Model](#-ml-model) • [Deploy](#-deployment-railway)
 
 </div>

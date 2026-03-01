@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Credit Score | SMECreditAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root { --primary:#1a56db; --bg:#f1f5f9; --surface:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --green:#10b981; --red:#ef4444; --amber:#f59e0b; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    nav { background:var(--surface); border-bottom:1px solid var(--border); padding:0 2rem; height:64px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .logo { font-weight:700; font-size:1.1rem; color:var(--primary); text-decoration:none; display:flex; align-items:center; gap:8px; }
+    .logo-icon { width:34px; height:34px; background:linear-gradient(135deg,#1a56db,#06b6d4); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-size:0.9rem; }
+    .btn { padding:0.45rem 1rem; border-radius:8px; font-size:0.85rem; font-weight:500; cursor:pointer; border:none; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-family:'DM Sans',sans-serif; transition:all 0.2s; }
+    .btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--text); }
+    .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+    .btn-primary { background:var(--primary); color:white; }
+    .btn-primary:hover { background:#1e40af; }
+
+    .page { max-width:900px; margin:0 auto; padding:2.5rem 2rem; }
+    .page-header { margin-bottom:2rem; }
+    .page-header h1 { font-size:1.4rem; font-weight:700; }
+    .page-header p { color:var(--muted); font-size:0.875rem; margin-top:0.25rem; }
+
+    /* ── Score Hero ── */
+    .score-hero { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:2.5rem; text-align:center; margin-bottom:1.5rem; position:relative; overflow:hidden; }
+    .score-hero-bg { position:absolute; width:320px; height:320px; border-radius:50%; top:-100px; right:-100px; opacity:0.06; background:#1a56db; }
+    .score-label { font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem; }
+    .gauge-wrap { width:240px; margin:0 auto 0.5rem; }
+    svg.gauge { width:100%; overflow:visible; }
+    .score-number { font-family:'DM Mono',monospace; font-size:4.5rem; font-weight:500; line-height:1; color:#1a56db; margin-bottom:0.6rem; }
+    .score-band-pill { display:inline-block; padding:0.35rem 1.2rem; border-radius:100px; font-size:0.9rem; font-weight:700; color:white; background:#1a56db; margin-bottom:0.4rem; }
+    .score-range-text { font-size:0.78rem; color:var(--muted); margin-bottom:1.5rem; }
+    .stat-row { display:flex; justify-content:center; gap:2.5rem; flex-wrap:wrap; padding-top:1.25rem; border-top:1px solid var(--border); }
+    .stat { text-align:center; }
+    .stat-val { font-size:1.05rem; font-weight:700; }
+    .stat-lbl { font-size:0.7rem; color:var(--muted); margin-top:0.15rem; }
+
+    /* ── Decision ── */
+    .decision { border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; }
+    .decision.eligible   { background:#f0fdf4; border:1px solid #bbf7d0; }
+    .decision.ineligible { background:#fef2f2; border:1px solid #fecaca; }
+    .dec-icon { font-size:2rem; flex-shrink:0; }
+    .dec-title { font-size:1rem; font-weight:700; margin-bottom:0.25rem; }
+    .dec-sub { font-size:0.82rem; color:var(--muted); line-height:1.5; }
+
+    /* ── Section headers ── */
+    .section-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.5rem; margin-bottom:1.25rem; }
+    .section-card h2 { font-size:0.95rem; font-weight:700; margin-bottom:0.25rem; display:flex; align-items:center; gap:0.5rem; }
+    .section-card .sub { font-size:0.78rem; color:var(--muted); margin-bottom:1.25rem; }
+
+    /* ── Summary text ── */
+    .summary-text { font-size:0.9rem; line-height:1.75; color:var(--text); background:#f8fafc; border-radius:10px; padding:1rem 1.1rem; border-left:3px solid var(--primary); }
+
+    /* ── SHAP waterfall bars ── */
+    .shap-list { display:flex; flex-direction:column; gap:0.6rem; }
+    .shap-row { display:grid; grid-template-columns:200px 1fr 70px; align-items:center; gap:0.75rem; }
+    .shap-label { font-size:0.78rem; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .shap-bar-wrap { height:20px; background:#f1f5f9; border-radius:4px; overflow:hidden; position:relative; }
+    .shap-bar { height:100%; border-radius:4px; transition:width 0.8s ease; width:0%; }
+    .shap-bar.positive { background:linear-gradient(90deg,#34d399,#10b981); }
+    .shap-bar.negative { background:linear-gradient(90deg,#fca5a5,#ef4444); }
+    .shap-val { font-size:0.75rem; font-family:'DM Mono',monospace; color:var(--muted); text-align:right; }
+
+    /* ── Two-column impact ── */
+    .impact-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .impact-col h3 { font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.4rem; }
+    .impact-col.pos h3 { color:var(--green); }
+    .impact-col.neg h3 { color:var(--red); }
+    .impact-item { display:flex; align-items:flex-start; gap:0.5rem; padding:0.6rem 0; border-bottom:1px solid var(--border); font-size:0.82rem; }
+    .impact-item:last-child { border-bottom:none; }
+    .impact-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:3px; }
+    .impact-item .feat-name { font-weight:600; display:block; margin-bottom:0.1rem; }
+    .impact-item .feat-val  { color:var(--muted); font-size:0.75rem; }
+
+    /* ── RBI Block ── */
+    .rbi-block { background:#0f172a; color:#e2e8f0; border-radius:12px; padding:1.25rem 1.5rem; font-family:'DM Mono',monospace; font-size:0.75rem; line-height:1.8; white-space:pre-wrap; word-break:break-word; }
+    .rbi-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+    .rbi-badge { background:#1e40af; color:white; padding:0.2rem 0.65rem; border-radius:100px; font-size:0.7rem; font-weight:600; font-family:'DM Sans',sans-serif; }
+    .copy-btn { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#e2e8f0; padding:0.3rem 0.75rem; border-radius:6px; font-size:0.72rem; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background 0.2s; }
+    .copy-btn:hover { background:rgba(255,255,255,0.2); }
+
+    /* ── Details grid ── */
+    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.25rem; }
+    .info-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.4rem; }
+    .info-card h3 { font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.85rem; }
+    .info-row { display:flex; justify-content:space-between; font-size:0.82rem; padding:0.3rem 0; border-bottom:1px solid var(--border); }
+    .info-row:last-child { border-bottom:none; }
+    .info-row .val { font-weight:600; }
+
+    .actions { display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:0.5rem; }
+
+    @media(max-width:640px) {
+      .shap-row { grid-template-columns:120px 1fr 55px; }
+      .info-grid { grid-template-columns:1fr; }
+      .impact-grid { grid-template-columns:1fr; }
+      .score-number { font-size:3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo"><div class="logo-icon">&#x20B9;</div>SMECreditAI</a>
+  <div style="display:flex;gap:0.75rem;">
+    <a href="/loan/my-applications" class="btn btn-outline">My Applications</a>
+    <a href="/dashboard" class="btn btn-primary">Dashboard</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <h1>AI Credit Score Report</h1>
+    <p>Application #{{ application.id }} &mdash; {{ application.business_name }}</p>
+  </div>
+
+  <!-- ── Score Hero ── -->
+  <div class="score-hero">
+    <div class="score-hero-bg" id="heroBg"></div>
+    <div class="score-label">AI Credit Score</div>
+    <div class="gauge-wrap">
+      <svg class="gauge" viewBox="0 0 200 115" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#e2e8f0" stroke-width="14" stroke-linecap="round"/>
+        <path id="gaugeArc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#1a56db"
+              stroke-width="14" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+        <text x="12"  y="116" font-size="9" fill="#94a3b8" font-family="DM Sans,sans-serif">300</text>
+        <text x="172" y="116" font-size="9" fill="#94a3b8" font-family="DM Sans,sans-serif">900</text>
+      </svg>
+    </div>
+    <div class="score-number" id="scoreDisplay">300</div>
+    <div class="score-band-pill" id="bandPill">{{ band.label }}</div>
+    <div class="score-range-text">Score range: {{ band.range }}</div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val">{{ application.risk_category }}</div><div class="stat-lbl">Risk Category</div></div>
+      <div class="stat"><div class="stat-val">{{ application.submitted_at.strftime('%d %b %Y') }}</div><div class="stat-lbl">Assessed On</div></div>
+      <div class="stat"><div class="stat-val" id="eligibleStat">—</div><div class="stat-lbl">Eligible</div></div>
+    </div>
+  </div>
+
+  <!-- ── Decision Banner ── -->
+  {% if application.ai_credit_score >= 620 %}
+  <div class="decision eligible">
+    <div class="dec-icon">&#x2705;</div>
+    <div>
+      <div class="dec-title" style="color:#059669;">Eligible for Loan</div>
+      <div class="dec-sub">Your credit profile meets our eligibility criteria (score &ge; 620). A lender will review and approve your application.</div>
+    </div>
+  </div>
+  {% else %}
+  <div class="decision ineligible">
+    <div class="dec-icon">&#x26A0;&#xFE0F;</div>
+    <div>
+      <div class="dec-title" style="color:#dc2626;">Below Eligibility Threshold</div>
+      <div class="dec-sub">Your score is below 620. Improving GST compliance, reducing payment bounces, or adding collateral can raise your score.</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if explanation %}
+
+  <!-- ── AI Summary ── -->
+  <div class="section-card">
+    <h2>&#x1F916; AI Assessment Summary</h2>
+    <p class="sub">Generated by {{ explanation.method }}</p>
+    <div class="summary-text">{{ explanation.summary_text }}</div>
+  </div>
+
+  <!-- ── SHAP Waterfall Chart ── -->
+  <div class="section-card">
+    <h2>&#x1F4CA; Feature Impact (SHAP-style)</h2>
+    <p class="sub">How each factor pushed your score up or down. Longer bar = stronger influence.</p>
+    <div class="shap-list" id="shapList">
+      {% for c in explanation.contributions %}
+      <div class="shap-row">
+        <div class="shap-label" title="{{ c.display_name }}">{{ c.display_name }}</div>
+        <div class="shap-bar-wrap">
+          <div class="shap-bar {{ c.direction }}"
+               data-width="{{ [c.abs_impact * 1800, 100] | min | round | int }}"></div>
+        </div>
+        <div class="shap-val">{{ c.formatted_value }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── What Helped / Hurt ── -->
+  <div class="section-card">
+    <h2>&#x2696;&#xFE0F; Key Factors Breakdown</h2>
+    <p class="sub">Top factors that helped and hurt your credit score.</p>
+    <div class="impact-grid">
+      <div class="impact-col pos">
+        <h3>&#x25B2; Helped Your Score</h3>
+        {% for c in explanation.top_positive[:4] %}
+        <div class="impact-item">
+          <div class="impact-dot" style="background:#10b981;"></div>
+          <div>
+            <span class="feat-name">{{ c.display_name }}</span>
+            <span class="feat-val">{{ c.formatted_value }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="impact-col neg">
+        <h3>&#x25BC; Hurt Your Score</h3>
+        {% for c in explanation.top_negative[:4] %}
+        <div class="impact-item">
+          <div class="impact-dot" style="background:#ef4444;"></div>
+          <div>
+            <span class="feat-name">{{ c.display_name }}</span>
+            <span class="feat-val">{{ c.formatted_value }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RBI Compliance Block ── -->
+  <div class="section-card">
+    <h2>&#x1F3DB;&#xFE0F; RBI Compliance Disclosure</h2>
+    <p class="sub">Formal explanation block as required under RBI fair lending guidelines.</p>
+    <div class="rbi-header">
+      <span class="rbi-badge">Official Disclosure</span>
+      <button class="copy-btn" onclick="copyRBI()">Copy Text</button>
+    </div>
+    <div class="rbi-block" id="rbiBlock">{{ explanation.rbi_explanation }}</div>
+  </div>
+
+  {% endif %}
+
+  <!-- ── Application Details ── -->
+  <div class="info-grid">
+    <div class="info-card">
+      <h3>Business Profile</h3>
+      <div class="info-row"><span>Business</span><span class="val">{{ application.business_name }}</span></div>
+      <div class="info-row"><span>Industry</span><span class="val">{{ application.industry }}</span></div>
+      <div class="info-row"><span>Years Operating</span><span class="val">{{ application.years_in_business }} yrs</span></div>
+      <div class="info-row"><span>Annual Turnover</span><span class="val">Rs.{{ application.annual_turnover }}L</span></div>
+      <div class="info-row"><span>Loan Requested</span><span class="val">Rs.{{ application.loan_amount_requested }}L</span></div>
+    </div>
+    <div class="info-card">
+      <h3>Financial Signals</h3>
+      <div class="info-row"><span>Monthly Credits</span><span class="val">Rs.{{ application.monthly_credits }}L</span></div>
+      <div class="info-row"><span>Monthly Debits</span><span class="val">Rs.{{ application.monthly_debits }}L</span></div>
+      <div class="info-row"><span>GST Regularity</span><span class="val">{{ application.gst_filing_regularity }}%</span></div>
+      <div class="info-row"><span>EMI Bounces</span><span class="val">{{ application.num_emi_bounces }}</span></div>
+      <div class="info-row"><span>Collateral</span><span class="val">{{ 'Yes' if application.collateral_available else 'No' }}</span></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <a href="/optimize/{{ application.id }}" class="btn btn-primary">&#x1F4B0; Loan Optimizer</a>
+    <a href="/loan/apply" class="btn btn-outline">+ New Application</a>
+    <a href="/loan/my-applications" class="btn btn-outline">All Applications</a>
+    <a href="/dashboard" class="btn btn-outline">Dashboard</a>
+    <a href="/report/pdf/{{ application.id }}" class="btn btn-outline">📋 Download PDF Report</a>
+  </div>
+
+</div>
+
+<script>
+  var FINAL_SCORE = parseInt("{{ application.ai_credit_score }}", 10) || 300;
+  var BAND_COLOR  = "{{ band.color }}";
+  var IS_ELIGIBLE = FINAL_SCORE >= 620;
+
+  // Apply dynamic colors
+  document.getElementById('scoreDisplay').style.color   = BAND_COLOR;
+  document.getElementById('bandPill').style.background  = BAND_COLOR;
+  document.getElementById('heroBg').style.background    = BAND_COLOR;
+  document.getElementById('gaugeArc').setAttribute('stroke', BAND_COLOR);
+  document.getElementById('eligibleStat').textContent   = IS_ELIGIBLE ? 'Yes' : 'No';
+
+  // Gauge animation
+  var arc = document.getElementById('gaugeArc');
+  arc.style.transition = 'stroke-dashoffset 1.5s ease';
+  var totalDash    = 251.2;
+  var targetOffset = totalDash - totalDash * ((FINAL_SCORE - 300) / 600);
+
+  // Score counter animation
+  var el        = document.getElementById('scoreDisplay');
+  var startTime = null;
+  var duration  = 1400;
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function animateScore(ts) {
+    if (!startTime) startTime = ts;
+    var prog = Math.min((ts - startTime) / duration, 1);
+    el.textContent = Math.round(300 + easeOut(prog) * (FINAL_SCORE - 300));
+    if (prog < 1) requestAnimationFrame(animateScore);
+    else el.textContent = FINAL_SCORE;
+  }
+
+  setTimeout(function () {
+    arc.style.strokeDashoffset = targetOffset;
+    requestAnimationFrame(animateScore);
+  }, 250);
+
+  // Animate SHAP bars after page load
+  setTimeout(function () {
+    var bars = document.querySelectorAll('.shap-bar');
+    bars.forEach(function (bar) {
+      bar.style.transition = 'width 0.9s ease';
+      bar.style.width = (bar.getAttribute('data-width') || '0') + '%';
+    });
+  }, 600);
+
+  // Copy RBI text
+  function copyRBI() {
+    var text = document.getElementById('rbiBlock').innerText;
+    navigator.clipboard.writeText(text).then(function () {
+      var btn = document.querySelector('.copy-btn');
+      btn.textContent = 'Copied!';
+      setTimeout(function () { btn.textContent = 'Copy Text'; }, 2000);
+    });
+  }
+</script>
+
+</body>
+</html>

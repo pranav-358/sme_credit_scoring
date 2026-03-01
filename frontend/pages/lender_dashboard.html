@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lender Dashboard | SMECreditAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root { --primary:#1a56db; --primary-dark:#1e40af; --primary-light:#eff6ff; --bg:#f1f5f9; --surface:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --green:#10b981; --red:#ef4444; --amber:#f59e0b; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* NAV */
+    nav { background:var(--surface); border-bottom:1px solid var(--border); padding:0 2rem; height:64px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .logo { font-weight:700; font-size:1.1rem; color:var(--primary); text-decoration:none; display:flex; align-items:center; gap:8px; }
+    .logo-icon { width:34px; height:34px; background:linear-gradient(135deg,#1a56db,#06b6d4); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-size:0.9rem; }
+    .nav-right { display:flex; align-items:center; gap:1rem; }
+    .user-chip { display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--muted); }
+    .avatar { width:32px; height:32px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem; }
+    .btn { padding:0.45rem 1rem; border-radius:8px; font-size:0.85rem; font-weight:500; cursor:pointer; border:none; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-family:'DM Sans',sans-serif; transition:all 0.2s; }
+    .btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--text); }
+    .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+
+    /* LAYOUT */
+    .page { max-width:1200px; margin:0 auto; padding:2rem; }
+
+    /* ANALYTICS CARDS */
+    .analytics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.25rem; transition:box-shadow 0.2s; }
+    .stat-card:hover { box-shadow:0 4px 20px rgba(0,0,0,0.07); }
+    .stat-card-icon { font-size:1.4rem; margin-bottom:0.6rem; }
+    .stat-card-val { font-size:1.75rem; font-weight:700; font-family:'DM Mono',monospace; line-height:1; }
+    .stat-card-lbl { font-size:0.72rem; color:var(--muted); margin-top:0.3rem; font-weight:500; text-transform:uppercase; letter-spacing:0.04em; }
+    .stat-card.blue  .stat-card-val { color:var(--primary); }
+    .stat-card.green .stat-card-val { color:var(--green); }
+    .stat-card.red   .stat-card-val { color:var(--red); }
+    .stat-card.amber .stat-card-val { color:var(--amber); }
+
+    /* FILTERS */
+    .filters-bar { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1rem 1.25rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+    .filter-group { display:flex; align-items:center; gap:0.5rem; font-size:0.82rem; }
+    .filter-group label { font-weight:500; color:var(--muted); white-space:nowrap; }
+    .filter-group select, .filter-group input {
+      padding:0.45rem 0.75rem; border:1.5px solid var(--border); border-radius:8px;
+      font-size:0.82rem; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface);
+      outline:none; transition:border-color 0.2s;
+    }
+    .filter-group select:focus, .filter-group input:focus { border-color:var(--primary); }
+    .filter-btn { padding:0.45rem 1rem; background:var(--primary); color:white; border:none; border-radius:8px; font-size:0.82rem; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background 0.2s; }
+    .filter-btn:hover { background:var(--primary-dark); }
+    .results-count { margin-left:auto; font-size:0.78rem; color:var(--muted); }
+
+    /* TABLE */
+    .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+    .table-header { padding:1.1rem 1.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .table-header h2 { font-size:0.95rem; font-weight:700; }
+    table { width:100%; border-collapse:collapse; }
+    thead th { text-align:left; font-size:0.72rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; padding:0.75rem 1.25rem; background:#f8fafc; border-bottom:1px solid var(--border); }
+    tbody tr { transition:background 0.15s; cursor:pointer; }
+    tbody tr:hover { background:#f8fafc; }
+    tbody td { padding:0.9rem 1.25rem; border-bottom:1px solid var(--border); font-size:0.83rem; vertical-align:middle; }
+    tbody tr:last-child td { border-bottom:none; }
+
+    /* BADGES */
+    .badge { display:inline-block; padding:0.2rem 0.65rem; border-radius:100px; font-size:0.7rem; font-weight:600; }
+    .badge-pending  { background:#fef9c3; color:#854d0e; }
+    .badge-approved { background:#f0fdf4; color:#059669; }
+    .badge-rejected { background:#fef2f2; color:#dc2626; }
+    .badge-low      { background:#f0fdf4; color:#059669; }
+    .badge-medium   { background:#fff7ed; color:#c2410c; }
+    .badge-high     { background:#fef2f2; color:#dc2626; }
+
+    /* SCORE CHIP */
+    .score-chip { font-family:'DM Mono',monospace; font-weight:600; font-size:0.88rem; }
+    .score-excellent { color:#10b981; }
+    .score-good      { color:#f59e0b; }
+    .score-poor      { color:#ef4444; }
+
+    /* MINI PROGRESS BAR (score bar) */
+    .score-bar-wrap { display:flex; align-items:center; gap:0.5rem; }
+    .score-bar-track { flex:1; height:5px; background:var(--border); border-radius:3px; overflow:hidden; max-width:80px; }
+    .score-bar-fill { height:100%; border-radius:3px; }
+    .fill-green { background:#10b981; }
+    .fill-amber { background:#f59e0b; }
+    .fill-red   { background:#ef4444; }
+
+    /* EMPTY STATE */
+    .empty-state { text-align:center; padding:4rem 2rem; color:var(--muted); }
+    .empty-state .icon { font-size:2.5rem; margin-bottom:1rem; }
+    .empty-state p { font-size:0.9rem; }
+
+    /* RISK DISTRIBUTION BAR */
+    .risk-bar-section { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:1.25rem; }
+    .risk-bar-section h3 { font-size:0.85rem; font-weight:700; margin-bottom:1rem; }
+    .risk-bar { display:flex; height:28px; border-radius:8px; overflow:hidden; gap:2px; }
+    .risk-segment { display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:white; transition:flex 0.6s ease; }
+    .seg-low    { background:var(--green); }
+    .seg-medium { background:var(--amber); }
+    .seg-high   { background:var(--red); }
+    .risk-legend { display:flex; gap:1.5rem; margin-top:0.75rem; }
+    .legend-item { display:flex; align-items:center; gap:0.4rem; font-size:0.75rem; color:var(--muted); }
+    .legend-dot { width:10px; height:10px; border-radius:50%; }
+
+    @media(max-width:900px) {
+      .analytics-grid { grid-template-columns:repeat(3,1fr); }
+      table { font-size:0.78rem; }
+    }
+    @media(max-width:600px) {
+      .analytics-grid { grid-template-columns:1fr 1fr; }
+      .filters-bar { flex-direction:column; align-items:stretch; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo"><div class="logo-icon">&#x20B9;</div>SMECreditAI</a>
+  <div class="nav-right">
+    <div class="user-chip">
+      <div class="avatar">{{ current_user.full_name[0].upper() }}</div>
+      {{ current_user.full_name }}
+      <span class="badge badge-approved" style="margin-left:4px;">Lender</span>
+    </div>
+    <a href="/auth/logout" class="btn btn-outline">Logout</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- ANALYTICS CARDS -->
+  <div style="margin-bottom:1.5rem;">
+    <h1 style="font-size:1.3rem;font-weight:700;">&#x1F3E6; Lender Dashboard</h1>
+    <p style="color:var(--muted);font-size:0.875rem;margin-top:0.25rem;">Review, filter and action all loan applications.</p>
+  </div>
+
+  <div class="analytics-grid">
+    <div class="stat-card blue">
+      <div class="stat-card-icon">&#x1F4CB;</div>
+      <div class="stat-card-val">{{ analytics.total }}</div>
+      <div class="stat-card-lbl">Total Applications</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-card-icon">&#x23F3;</div>
+      <div class="stat-card-val">{{ analytics.pending }}</div>
+      <div class="stat-card-lbl">Pending Review</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-card-icon">&#x2705;</div>
+      <div class="stat-card-val">{{ analytics.approved }}</div>
+      <div class="stat-card-lbl">Approved</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-card-icon">&#x274C;</div>
+      <div class="stat-card-val">{{ analytics.rejected }}</div>
+      <div class="stat-card-lbl">Rejected</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-card-icon">&#x1F4CA;</div>
+      <div class="stat-card-val">{{ analytics.avg_score | int }}</div>
+      <div class="stat-card-lbl">Avg Credit Score</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-card-icon">&#x1F4B0;</div>
+      <div class="stat-card-val">&#x20B9;{{ analytics.total_requested }}L</div>
+      <div class="stat-card-lbl">Total Requested</div>
+    </div>
+  </div>
+
+  <!-- RISK DISTRIBUTION BAR -->
+  {% if analytics.total > 0 %}
+  <div class="risk-bar-section">
+    <h3>Risk Distribution</h3>
+    <div class="risk-bar" id="riskBar">
+      <div class="risk-segment seg-low"    id="segLow"></div>
+      <div class="risk-segment seg-medium" id="segMed"></div>
+      <div class="risk-segment seg-high"   id="segHigh"></div>
+    </div>
+    <div class="risk-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div>Low Risk — {{ analytics.low_risk }}</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div>Medium Risk — {{ analytics.medium_risk }}</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div>High Risk — {{ analytics.high_risk }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- FILTERS -->
+  <form method="GET" action="/lender/dashboard">
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label>&#x1F50D; Search</label>
+        <input type="text" name="search" value="{{ search }}" placeholder="Business, industry, applicant..."/>
+      </div>
+      <div class="filter-group">
+        <label>Risk</label>
+        <select name="risk">
+          <option value="all"    {{ 'selected' if risk_filter=='all' }}>All Risk</option>
+          <option value="Low"    {{ 'selected' if risk_filter=='Low' }}>Low</option>
+          <option value="Medium" {{ 'selected' if risk_filter=='Medium' }}>Medium</option>
+          <option value="High"   {{ 'selected' if risk_filter=='High' }}>High</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Status</label>
+        <select name="status">
+          <option value="all"      {{ 'selected' if status_filter=='all' }}>All Status</option>
+          <option value="pending"  {{ 'selected' if status_filter=='pending' }}>Pending</option>
+          <option value="approved" {{ 'selected' if status_filter=='approved' }}>Approved</option>
+          <option value="rejected" {{ 'selected' if status_filter=='rejected' }}>Rejected</option>
+        </select>
+      </div>
+      <button type="submit" class="filter-btn">Apply Filter</button>
+      <a href="/lender/dashboard" class="btn btn-outline" style="font-size:0.82rem;">Clear</a>
+      <span class="results-count">{{ applications|length }} of {{ all_count }} shown</span>
+    </div>
+  </form>
+
+  <!-- APPLICATIONS TABLE -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <h2>Loan Applications</h2>
+    </div>
+
+    {% if applications %}
+    <table>
+      <thead>
+        <tr>
+          <th>#ID</th>
+          <th>Applicant</th>
+          <th>Business</th>
+          <th>Industry</th>
+          <th>Amount</th>
+          <th>AI Score</th>
+          <th>Risk</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in applications %}
+        <tr onclick="window.location='/lender/application/{{ app.id }}'">
+          <td style="font-family:'DM Mono',monospace;color:var(--muted);">#{{ app.id }}</td>
+          <td>{{ app.user.full_name }}</td>
+          <td style="font-weight:600;">{{ app.business_name }}</td>
+          <td style="color:var(--muted);">{{ app.industry }}</td>
+          <td style="font-family:'DM Mono',monospace;">&#x20B9;{{ app.loan_amount_requested }}L</td>
+          <td>
+            {% if app.ai_credit_score %}
+            <div class="score-bar-wrap">
+              {% if app.ai_credit_score >= 720 %}
+                <span class="score-chip score-excellent">{{ app.ai_credit_score }}</span>
+              {% elif app.ai_credit_score >= 580 %}
+                <span class="score-chip score-good">{{ app.ai_credit_score }}</span>
+              {% else %}
+                <span class="score-chip score-poor">{{ app.ai_credit_score }}</span>
+              {% endif %}
+              <div class="score-bar-track">
+                <div class="score-bar-fill {% if app.ai_credit_score >= 720 %}fill-green{% elif app.ai_credit_score >= 580 %}fill-amber{% else %}fill-red{% endif %}"
+                     data-pct="{{ ((app.ai_credit_score - 300) / 600 * 100) | round | int }}"
+                     style="width:0%;">
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <span style="color:var(--muted);font-size:0.75rem;">Not scored</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if app.risk_category %}
+            <span class="badge badge-{{ app.risk_category | lower }}">{{ app.risk_category }}</span>
+            {% else %}<span style="color:var(--muted);">—</span>{% endif %}
+          </td>
+          <td><span class="badge badge-{{ app.status }}">{{ app.status.title() }}</span></td>
+          <td style="color:var(--muted);font-size:0.78rem;">{{ app.submitted_at.strftime('%d %b %Y') }}</td>
+          <td onclick="event.stopPropagation()">
+            <a href="/lender/application/{{ app.id }}" class="btn btn-outline" style="font-size:0.75rem;padding:0.35rem 0.75rem;">Review &#x2192;</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="icon">&#x1F4C2;</div>
+      <p>No applications found matching your filters.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  // Risk distribution bar
+  var low    = parseInt("{{ analytics.low_risk }}", 10)    || 0;
+  var medium = parseInt("{{ analytics.medium_risk }}", 10) || 0;
+  var high   = parseInt("{{ analytics.high_risk }}", 10)   || 0;
+  var total  = low + medium + high || 1;
+  var segLow = document.getElementById('segLow');
+  var segMed = document.getElementById('segMed');
+  var segHigh= document.getElementById('segHigh');
+  segLow.style.flex  = low;
+  segMed.style.flex  = medium;
+  segHigh.style.flex = high;
+  if (low > 0)    segLow.textContent  = 'Low '    + low;
+  if (medium > 0) segMed.textContent  = 'Med '    + medium;
+  if (high > 0)   segHigh.textContent = 'High '   + high;
+
+  // Animate score bar fills
+  setTimeout(function () {
+    document.querySelectorAll('.score-bar-fill').forEach(function (el) {
+      var pct = parseInt(el.getAttribute('data-pct'), 10) || 0;
+      el.style.transition = 'width 0.8s ease';
+      el.style.width = pct + '%';
+    });
+  }, 200);
+</script>
+
+</body>
+</htm

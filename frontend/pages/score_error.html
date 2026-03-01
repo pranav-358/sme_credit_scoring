@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Scoring Error | SMECreditAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    body{font-family:'DM Sans',sans-serif;background:#f1f5f9;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:2.5rem;max-width:480px;text-align:center;}
+    .icon{font-size:2.5rem;margin-bottom:1rem;}
+    h1{font-size:1.25rem;margin-bottom:0.5rem;}
+    p{color:#64748b;font-size:0.875rem;margin-bottom:1.5rem;line-height:1.6;}
+    code{display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:0.75rem;font-size:0.8rem;text-align:left;margin-bottom:1.5rem;color:#dc2626;word-break:break-all;}
+    a{display:inline-block;padding:0.6rem 1.25rem;background:#1a56db;color:white;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.875rem;}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">⚠️</div>
+  <h1>Model Not Ready</h1>
+  <p>The credit scoring model hasn't been trained yet. Run the training script first:</p>
+  <code>python ml/train_model.py</code>
+  <p style="color:#64748b;font-size:0.78rem;">Error: {{ error }}</p>
+  <a href="/dashboard">← Back to Dashboard</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apply for Loan | SMECreditAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:#1a56db; --primary-dark:#1e40af; --primary-light:#eff6ff;
+      --accent:#06b6d4; --bg:#f1f5f9; --surface:#fff;
+      --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
+      --error:#ef4444; --success:#10b981;
+    }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* NAV */
+    nav { background:var(--surface); border-bottom:1px solid var(--border); padding:0 2rem; height:64px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .logo { font-weight:700; font-size:1.1rem; color:var(--primary); text-decoration:none; display:flex; align-items:center; gap:8px; }
+    .logo-icon { width:34px; height:34px; background:linear-gradient(135deg,#1a56db,#06b6d4); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-size:0.9rem; }
+    .back-btn { display:flex; align-items:center; gap:6px; text-decoration:none; color:var(--muted); font-size:0.875rem; transition:color 0.2s; }
+    .back-btn:hover { color:var(--primary); }
+
+    /* LAYOUT */
+    .page { max-width:860px; margin:0 auto; padding:2rem; }
+
+    /* PROGRESS */
+    .progress-bar-wrap { margin-bottom:2.5rem; }
+    .progress-steps { display:flex; justify-content:space-between; margin-bottom:0.5rem; }
+    .step-label { font-size:0.72rem; color:var(--muted); font-weight:500; transition:color 0.3s; }
+    .step-label.active { color:var(--primary); }
+    .step-label.done { color:var(--success); }
+    .track { height:4px; background:var(--border); border-radius:4px; overflow:hidden; }
+    .fill { height:100%; background:linear-gradient(90deg,var(--primary),var(--accent)); border-radius:4px; transition:width 0.4s ease; }
+
+    /* FORM SECTIONS */
+    .section { display:none; animation:fadeIn 0.3s ease; }
+    .section.active { display:block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
+
+    .section-header { margin-bottom:1.75rem; }
+    .section-header h2 { font-size:1.3rem; font-weight:700; margin-bottom:0.25rem; }
+    .section-header p { color:var(--muted); font-size:0.875rem; }
+
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; }
+    .form-grid.cols-3 { grid-template-columns:1fr 1fr 1fr; }
+    .full { grid-column:1/-1; }
+
+    .form-group { display:flex; flex-direction:column; }
+    label { font-size:0.825rem; font-weight:500; color:var(--text); margin-bottom:0.4rem; }
+    .hint { font-size:0.72rem; color:var(--muted); margin-top:0.25rem; }
+
+    input[type=text], input[type=number], input[type=email],
+    select, textarea {
+      padding:0.7rem 0.9rem; border:1.5px solid var(--border);
+      border-radius:10px; font-size:0.875rem;
+      font-family:'DM Sans',sans-serif; color:var(--text);
+      background:var(--surface); transition:border-color 0.2s,box-shadow 0.2s; outline:none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color:var(--primary); box-shadow:0 0 0 3px rgba(26,86,219,0.1);
+    }
+    select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 0.75rem center; padding-right:2.5rem; }
+    textarea { resize:vertical; min-height:80px; }
+
+    /* SLIDER */
+    .slider-wrap { display:flex; flex-direction:column; gap:0.5rem; }
+    input[type=range] { -webkit-appearance:none; height:6px; border-radius:3px; background:var(--border); outline:none; cursor:pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--primary); cursor:pointer; box-shadow:0 2px 6px rgba(26,86,219,0.35); }
+    .slider-val { font-size:1rem; font-weight:700; color:var(--primary); text-align:right; }
+
+    /* TOGGLE SWITCH */
+    .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; background:#f8fafc; border:1px solid var(--border); border-radius:10px; }
+    .toggle-label { font-size:0.875rem; font-weight:500; }
+    .toggle-sub { font-size:0.75rem; color:var(--muted); }
+    .switch { position:relative; display:inline-block; width:44px; height:24px; }
+    .switch input { opacity:0; width:0; height:0; }
+    .slider-thumb { position:absolute; inset:0; background:var(--border); border-radius:24px; cursor:pointer; transition:background 0.2s; }
+    .slider-thumb::before { content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:white; border-radius:50%; transition:transform 0.2s; }
+    input:checked + .slider-thumb { background:var(--primary); }
+    input:checked + .slider-thumb::before { transform:translateX(20px); }
+
+    /* INFO CARD */
+    .info-card { background:var(--primary-light); border:1px solid #bfdbfe; border-radius:10px; padding:0.85rem 1rem; font-size:0.8rem; color:#1e40af; margin-bottom:1.5rem; display:flex; gap:0.5rem; }
+
+    /* ERROR */
+    .error-box { background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:0.85rem 1rem; color:var(--error); font-size:0.875rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem; }
+
+    /* BUTTONS */
+    .form-actions { display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border); }
+    .btn { padding:0.65rem 1.5rem; border-radius:10px; font-size:0.9rem; font-weight:600; cursor:pointer; border:none; transition:all 0.2s; font-family:'DM Sans',sans-serif; display:inline-flex; align-items:center; gap:6px; }
+    .btn-secondary { background:var(--surface); border:1.5px solid var(--border); color:var(--text); }
+    .btn-secondary:hover { border-color:var(--primary); color:var(--primary); }
+    .btn-primary { background:var(--primary); color:white; }
+    .btn-primary:hover { background:var(--primary-dark); transform:translateY(-1px); box-shadow:0 4px 14px rgba(26,86,219,0.3); }
+    .btn-success { background:var(--success); color:white; }
+    .btn-success:hover { background:#059669; transform:translateY(-1px); }
+
+    /* SUMMARY */
+    .summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .summary-card { background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:1rem; }
+    .summary-card h4 { font-size:0.75rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.05em; }
+    .summary-item { display:flex; justify-content:space-between; font-size:0.82rem; padding:0.25rem 0; border-bottom:1px solid var(--border); }
+    .summary-item:last-child { border-bottom:none; }
+    .summary-item span:last-child { font-weight:600; color:var(--text); }
+
+    @media (max-width:640px) {
+      .form-grid { grid-template-columns:1fr; }
+      .form-grid.cols-3 { grid-template-columns:1fr; }
+      .summary-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo"><div class="logo-icon">₹</div>SMECreditAI</a>
+  <a href="/dashboard" class="back-btn">← Back to Dashboard</a>
+</nav>
+
+<div class="page">
+
+  <!-- Progress -->
+  <div class="progress-bar-wrap">
+    <div class="progress-steps">
+      <span class="step-label active" id="lbl-0">Business Info</span>
+      <span class="step-label" id="lbl-1">Bank Statements</span>
+      <span class="step-label" id="lbl-2">GST Patterns</span>
+      <span class="step-label" id="lbl-3">Social &amp; Industry</span>
+      <span class="step-label" id="lbl-4">Review &amp; Submit</span>
+    </div>
+    <div class="track"><div class="fill" id="progressFill" style="width:10%"></div></div>
+  </div>
+
+  {% if error %}
+  <div class="error-box">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <form method="POST" action="/loan/apply" id="loanForm">
+
+    <!-- SECTION 1: Business Details -->
+    <div class="section active" id="sec-0">
+      <div class="section-header">
+        <h2>🏢 Business Details</h2>
+        <p>Tell us about your company and the loan you need.</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Business Name *</label>
+          <input type="text" name="business_name" placeholder="Sharma Textiles Pvt Ltd" required/>
+        </div>
+        <div class="form-group">
+          <label>Business Type *</label>
+          <select name="business_type" required>
+            <option value="">Select type</option>
+            <option>Sole Proprietorship</option>
+            <option>Partnership</option>
+            <option>Private Limited</option>
+            <option>LLP</option>
+            <option>Public Limited</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Industry *</label>
+          <select name="industry" required>
+            <option value="">Select industry</option>
+            <option>Manufacturing</option>
+            <option>Retail &amp; Trade</option>
+            <option>IT &amp; Software</option>
+            <option>Healthcare</option>
+            <option>Food &amp; Beverages</option>
+            <option>Construction</option>
+            <option>Logistics &amp; Transport</option>
+            <option>Education</option>
+            <option>Agriculture</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Years in Business *</label>
+          <input type="number" name="years_in_business" placeholder="5" min="0" max="100" step="0.5" required/>
+        </div>
+        <div class="form-group">
+          <label>Number of Employees *</label>
+          <input type="number" name="num_employees" placeholder="25" min="1" required/>
+        </div>
+        <div class="form-group">
+          <label>Annual Turnover (₹ Lakhs) *</label>
+          <input type="number" name="annual_turnover" placeholder="120.5" min="0" step="0.1" required/>
+          <span class="hint">Total revenue in last financial year</span>
+        </div>
+        <div class="form-group">
+          <label>Loan Amount Requested (₹ Lakhs) *</label>
+          <input type="number" name="loan_amount_requested" placeholder="25" min="0.1" step="0.1" required/>
+        </div>
+        <div class="form-group full">
+          <label>Loan Purpose *</label>
+          <textarea name="loan_purpose" placeholder="Working capital for raw material procurement, machinery upgrade..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: Bank Statement Metrics -->
+    <div class="section" id="sec-1">
+      <div class="section-header">
+        <h2>🏦 Bank Statement Metrics</h2>
+        <p>Average figures from the last 12 months of bank statements.</p>
+      </div>
+      <div class="info-card">ℹ️ All amounts in ₹ Lakhs. Use 12-month averages for best accuracy.</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Avg. Monthly Balance (₹ Lakhs) *</label>
+          <input type="number" name="avg_monthly_balance" placeholder="8.5" min="0" step="0.01" required/>
+        </div>
+        <div class="form-group">
+          <label>Avg. Monthly Credits / Inflow (₹ Lakhs) *</label>
+          <input type="number" name="monthly_credits" placeholder="15.2" min="0" step="0.01" required/>
+        </div>
+        <div class="form-group">
+          <label>Avg. Monthly Debits / Outflow (₹ Lakhs) *</label>
+          <input type="number" name="monthly_debits" placeholder="13.8" min="0" step="0.01" required/>
+        </div>
+        <div class="form-group">
+          <label>Existing Monthly EMI Obligations (₹ Lakhs)</label>
+          <input type="number" name="existing_loan_emi" placeholder="1.2" min="0" step="0.01" value="0"/>
+        </div>
+        <div class="form-group">
+          <label>EMI Bounces (last 12 months)</label>
+          <input type="number" name="num_emi_bounces" placeholder="0" min="0" max="24" value="0"/>
+        </div>
+        <div class="form-group">
+          <label>Cheque Bounces (last 12 months)</label>
+          <input type="number" name="num_cheque_bounces" placeholder="0" min="0" max="24" value="0"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: GST Patterns -->
+    <div class="section" id="sec-2">
+      <div class="section-header">
+        <h2>📄 GST Filing Patterns</h2>
+        <p>GST compliance history signals business regularity to lenders.</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>GST Filing Regularity: <span id="gstRegVal">80</span>%</label>
+          <div class="slider-wrap">
+            <input type="range" name="gst_filing_regularity" id="gstReg" min="0" max="100" value="80"
+              oninput="document.getElementById('gstRegVal').textContent=this.value"/>
+          </div>
+          <span class="hint">Percentage of months where GST was filed on time in the last 2 years</span>
+        </div>
+        <div class="form-group">
+          <label>Avg. Quarterly GST-Declared Turnover (₹ Lakhs) *</label>
+          <input type="number" name="avg_gst_turnover" placeholder="30" min="0" step="0.1" required/>
+        </div>
+        <div class="form-group">
+          <label>GST Turnover YoY Growth Rate (%)</label>
+          <input type="number" name="gst_growth_rate" placeholder="12" step="0.1" value="0"/>
+          <span class="hint">Negative values allowed for decline</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: Social & Industry -->
+    <div class="section" id="sec-3">
+      <div class="section-header">
+        <h2>🌐 Social Presence &amp; Industry Factors</h2>
+        <p>Alternative signals that indicate business health and market position.</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Social / Digital Presence Score: <span id="socVal">5</span> / 10</label>
+          <div class="slider-wrap">
+            <input type="range" name="social_presence_score" id="socScore" min="1" max="10" step="0.5" value="5"
+              oninput="document.getElementById('socVal').textContent=this.value"/>
+          </div>
+          <span class="hint">1 = No online presence, 10 = Strong website, social media, Google listing</span>
+        </div>
+        <div class="form-group full">
+          <label>Industry Growth Factor: <span id="indVal">5</span> / 10</label>
+          <div class="slider-wrap">
+            <input type="range" name="industry_growth_factor" id="indFactor" min="1" max="10" step="0.5" value="5"
+              oninput="document.getElementById('indVal').textContent=this.value"/>
+          </div>
+          <span class="hint">1 = Declining sector, 10 = High-growth sector</span>
+        </div>
+        <div class="form-group">
+          <label>Online Reviews Rating (1–5)</label>
+          <input type="number" name="online_reviews_rating" placeholder="4.2" min="1" max="5" step="0.1" value="3.5"/>
+          <span class="hint">Google / Justdial / average rating</span>
+        </div>
+        <div class="form-group">
+          <label>Previous Loan Defaults</label>
+          <input type="number" name="previous_loan_defaults" placeholder="0" min="0" max="20" value="0"/>
+        </div>
+        <div class="form-group">
+          <label>Existing CIBIL / Credit Score</label>
+          <input type="number" name="existing_credit_score" placeholder="720" min="0" max="900" value="0"/>
+          <span class="hint">Enter 0 if not known</span>
+        </div>
+        <div class="form-group">
+          <label>Years of Banking Relationship</label>
+          <input type="number" name="years_of_banking_rel" placeholder="5" min="0" step="0.5" value="1"/>
+        </div>
+        <div class="form-group full">
+          <label>Collateral Value (₹ Lakhs) — if available</label>
+          <input type="number" name="collateral_value" placeholder="0" min="0" step="0.1" value="0"/>
+        </div>
+      </div>
+
+      <!-- Toggle switches -->
+      <div style="display:flex;flex-direction:column;gap:0.75rem;margin-top:1.25rem;">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Export / International Presence</div>
+            <div class="toggle-sub">Does your business export goods or services?</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" name="export_presence"/>
+            <span class="slider-thumb"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Collateral Available</div>
+            <div class="toggle-sub">Property, machinery, or other assets to offer as security</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" name="collateral_available"/>
+            <span class="slider-thumb"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 5: Review & Submit -->
+    <div class="section" id="sec-4">
+      <div class="section-header">
+        <h2>✅ Review &amp; Submit</h2>
+        <p>Please verify your details before submitting. Our AI will score your application instantly.</p>
+      </div>
+      <div class="summary-grid" id="summaryGrid">
+        <!-- Populated by JS -->
+      </div>
+      <div class="info-card" style="margin-top:1.5rem;">
+        🤖 After submission, our Gradient Boosting model will generate your credit score and risk category. Results appear on your applications page.
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="visibility:hidden;">← Previous</button>
+      <div style="font-size:0.8rem;color:var(--muted);">Step <span id="stepNum">1</span> of 5</div>
+      <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeStep(1)">Next →</button>
+      <button type="submit" class="btn btn-success" id="submitBtn" style="display:none;">🚀 Submit Application</button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+  let current = 0;
+  const total = 5;
+
+  const fills = [10, 30, 52, 74, 96];
+
+  function changeStep(dir) {
+    // Basic required-field check for forward nav
+    if (dir === 1) {
+      const sec = document.getElementById('sec-' + current);
+      const required = sec.querySelectorAll('[required]');
+      for (let el of required) {
+        if (!el.value.trim()) {
+          el.focus();
+          el.style.borderColor = '#ef4444';
+          setTimeout(() => el.style.borderColor = '', 2000);
+          return;
+        }
+      }
+    }
+
+    document.getElementById('sec-' + current).classList.remove('active');
+    document.getElementById('lbl-' + current).classList.remove('active');
+    if (dir === 1) document.getElementById('lbl-' + current).classList.add('done');
+
+    current += dir;
+    current = Math.max(0, Math.min(total - 1, current));
+
+    document.getElementById('sec-' + current).classList.add('active');
+    document.getElementById('lbl-' + current).classList.add('active');
+    document.getElementById('progressFill').style.width = fills[current] + '%';
+    document.getElementById('stepNum').textContent = current + 1;
+
+    document.getElementById('prevBtn').style.visibility = current === 0 ? 'hidden' : 'visible';
+    document.getElementById('nextBtn').style.display = current === total - 1 ? 'none' : 'inline-flex';
+    document.getElementById('submitBtn').style.display = current === total - 1 ? 'inline-flex' : 'none';
+
+    if (current === total - 1) buildSummary();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function buildSummary() {
+    const f = document.getElementById('loanForm');
+    const data = {
+      'Business': {
+        'Business Name': f.business_name.value,
+        'Type': f.business_type.value,
+        'Industry': f.industry.value,
+        'Years Operating': f.years_in_business.value + ' yrs',
+        'Annual Turnover': '₹' + f.annual_turnover.value + 'L',
+        'Loan Requested': '₹' + f.loan_amount_requested.value + 'L',
+      },
+      'Financials': {
+        'Avg Monthly Balance': '₹' + f.avg_monthly_balance.value + 'L',
+        'Monthly Credits': '₹' + f.monthly_credits.value + 'L',
+        'Monthly Debits': '₹' + f.monthly_debits.value + 'L',
+        'EMI Bounces': f.num_emi_bounces.value,
+        'Cheque Bounces': f.num_cheque_bounces.value,
+      },
+      'GST & Compliance': {
+        'Filing Regularity': f.gst_filing_regularity.value + '%',
+        'Avg Quarterly Turnover': '₹' + f.avg_gst_turnover.value + 'L',
+        'YoY Growth': f.gst_growth_rate.value + '%',
+      },
+      'Industry & Social': {
+        'Social Score': f.social_presence_score.value + '/10',
+        'Industry Growth': f.industry_growth_factor.value + '/10',
+        'Reviews Rating': f.online_reviews_rating.value + '/5',
+        'Prior Defaults': f.previous_loan_defaults.value,
+      }
+    };
+
+    const grid = document.getElementById('summaryGrid');
+    grid.innerHTML = Object.entries(data).map(([title, items]) => `
+      <div class="summary-card">
+        <h4>${title}</h4>
+        ${Object.entries(items).map(([k,v]) => `
+          <div class="summary-item">
+            <span>${k}</span><span>${v || '—'}</span>
+          </div>`).join('')}
+      </div>`).join('');
+  }
+</script>
+</body>
+</html>

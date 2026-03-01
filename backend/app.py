@@ -1,0 +1,85 @@
+import os, sys
+
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
+
+from flask import Flask
+from dotenv import load_dotenv
+from extensions import db, login_manager, mail
+
+load_dotenv()
+
+
+def create_app():
+    app = Flask(
+        __name__,
+        template_folder=os.path.join(BACKEND_DIR, '..', 'frontend', 'pages'),
+        static_folder=os.path.join(BACKEND_DIR,   '..', 'frontend', 'assets')
+    )
+
+    app.config['SECRET_KEY']                     = os.getenv('SECRET_KEY', 'dev-secret-key')
+    # Use PostgreSQL on Railway (DATABASE_URL set automatically),
+    # fall back to SQLite locally
+    database_url = os.getenv('DATABASE_URL')
+    if database_url:
+        # Railway gives postgres:// but SQLAlchemy needs postgresql://
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    else:
+        database_url = 'sqlite:///' + os.path.normpath(
+            os.path.join(BACKEND_DIR, '..', 'instance', 'sme_credit.db')
+        )
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    # ── Flask-Mail ─────────────────────────────────────────────────────────
+    app.config['MAIL_SERVER']          = 'smtp.gmail.com'
+    app.config['MAIL_PORT']            = 587
+    app.config['MAIL_USE_TLS']         = True
+    app.config['MAIL_USERNAME']        = os.getenv('MAIL_USERNAME', '')
+    app.config['MAIL_PASSWORD']        = os.getenv('MAIL_PASSWORD', '')
+    app.config['MAIL_DEFAULT_SENDER']  = os.getenv('MAIL_DEFAULT_SENDER',
+                                                    os.getenv('MAIL_USERNAME', ''))
+
+    db.init_app(app)
+    login_manager.init_app(app)
+    mail.init_app(app)
+    login_manager.login_view = 'auth.login'
+
+    from routes.auth      import auth_bp
+    from routes.main      import main_bp
+    from routes.loan      import loan_bp
+    from routes.score     import score_bp
+    from routes.optimizer import optimizer_bp
+    from routes.lender    import lender_bp
+    from routes.report    import report_bp
+
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(main_bp)
+    app.register_blueprint(loan_bp)
+    app.register_blueprint(score_bp)
+    app.register_blueprint(optimizer_bp)
+    app.register_blueprint(lender_bp)
+    app.register_blueprint(report_bp)
+
+    with app.app_context():
+        from models.user             import User
+        from models.loan_application import LoanApplication
+        db.create_all()
+
+    @app.errorhandler(404)
+    def not_found(e):
+        from flask import render_template
+        return render_template('404.html'), 404
+
+    @app.errorhandler(500)
+    def server_error(e):
+        from flask import render_template
+        return render_template('score_error.html', error=str(e)), 500
+
+    return app
+
+
+if __name__ == '__main__':
+    app = create_app()
+    app.run(debug=True, port=5000)

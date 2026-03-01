@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Loan Optimizer | SMECreditAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --primary:#1a56db; --primary-dark:#1e40af; --primary-light:#eff6ff;
+      --accent:#06b6d4; --bg:#f1f5f9; --surface:#fff;
+      --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
+      --green:#10b981; --red:#ef4444; --amber:#f59e0b;
+    }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* NAV */
+    nav { background:var(--surface); border-bottom:1px solid var(--border); padding:0 2rem; height:64px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .logo { font-weight:700; font-size:1.1rem; color:var(--primary); text-decoration:none; display:flex; align-items:center; gap:8px; }
+    .logo-icon { width:34px; height:34px; background:linear-gradient(135deg,#1a56db,#06b6d4); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-size:0.9rem; }
+    .btn { padding:0.45rem 1rem; border-radius:8px; font-size:0.85rem; font-weight:500; cursor:pointer; border:none; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-family:'DM Sans',sans-serif; transition:all 0.2s; }
+    .btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--text); }
+    .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+    .btn-primary { background:var(--primary); color:white; }
+    .btn-primary:hover { background:var(--primary-dark); transform:translateY(-1px); }
+
+    /* PAGE */
+    .page { max-width:960px; margin:0 auto; padding:2.5rem 2rem; }
+    .page-header { margin-bottom:2rem; }
+    .page-header h1 { font-size:1.4rem; font-weight:700; display:flex; align-items:center; gap:0.5rem; }
+    .page-header p { color:var(--muted); font-size:0.875rem; margin-top:0.3rem; }
+
+    /* HERO OFFER CARD */
+    .offer-card {
+      background:linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1a56db 100%);
+      border-radius:18px; padding:2.5rem;
+      margin-bottom:1.5rem; position:relative; overflow:hidden;
+      color:white;
+    }
+    .offer-card::before {
+      content:''; position:absolute;
+      width:350px; height:350px; border-radius:50%;
+      background:rgba(6,182,212,0.1);
+      top:-120px; right:-80px;
+    }
+    .offer-card::after {
+      content:''; position:absolute;
+      width:200px; height:200px; border-radius:50%;
+      background:rgba(255,255,255,0.05);
+      bottom:-60px; left:-40px;
+    }
+    .offer-inner { position:relative; z-index:1; }
+    .offer-label { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.6); margin-bottom:0.5rem; }
+    .offer-amount { font-family:'DM Mono',monospace; font-size:3.5rem; font-weight:500; line-height:1; margin-bottom:0.4rem; }
+    .offer-amount span { font-size:1.5rem; opacity:0.7; }
+    .offer-sub { font-size:0.9rem; color:rgba(255,255,255,0.65); margin-bottom:2rem; }
+
+    .offer-stats { display:flex; gap:2.5rem; flex-wrap:wrap; }
+    .offer-stat { }
+    .offer-stat-val { font-size:1.25rem; font-weight:700; }
+    .offer-stat-lbl { font-size:0.7rem; color:rgba(255,255,255,0.55); margin-top:0.1rem; }
+
+    .requested-vs {
+      display:inline-flex; align-items:center; gap:0.5rem;
+      background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15);
+      padding:0.5rem 1rem; border-radius:10px;
+      font-size:0.82rem; margin-bottom:1.5rem;
+    }
+
+    /* CSR METER */
+    .csr-section { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.5rem; margin-bottom:1.25rem; }
+    .csr-section h2 { font-size:0.95rem; font-weight:700; margin-bottom:0.25rem; }
+    .csr-section .sub { font-size:0.78rem; color:var(--muted); margin-bottom:1.25rem; }
+    .csr-meter-wrap { margin-bottom:1rem; }
+    .csr-track { height:12px; background:var(--border); border-radius:6px; overflow:hidden; margin-bottom:0.5rem; position:relative; }
+    .csr-fill { height:100%; border-radius:6px; transition:width 1s ease; width:0%; }
+    .csr-fill.safe    { background:linear-gradient(90deg,#34d399,#10b981); }
+    .csr-fill.caution { background:linear-gradient(90deg,#fcd34d,#f59e0b); }
+    .csr-fill.risky   { background:linear-gradient(90deg,#fca5a5,#ef4444); }
+    .csr-markers { display:flex; justify-content:space-between; font-size:0.7rem; color:var(--muted); }
+    .csr-value-row { display:flex; align-items:center; justify-content:space-between; }
+    .csr-big { font-size:2.5rem; font-weight:700; font-family:'DM Mono',monospace; }
+    .csr-status { display:inline-flex; align-items:center; gap:0.4rem; padding:0.3rem 0.85rem; border-radius:100px; font-size:0.8rem; font-weight:600; }
+    .csr-status.Safe    { background:#f0fdf4; color:#059669; }
+    .csr-status.Caution { background:#fffbeb; color:#d97706; }
+    .csr-status.Risky   { background:#fef2f2; color:#dc2626; }
+    .csr-breakdown { display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem; margin-top:1rem; }
+    .csr-item { background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:0.75rem; text-align:center; }
+    .csr-item-val { font-size:0.95rem; font-weight:700; font-family:'DM Mono',monospace; }
+    .csr-item-lbl { font-size:0.68rem; color:var(--muted); margin-top:0.2rem; }
+
+    /* TENURE TABLE */
+    .section-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.5rem; margin-bottom:1.25rem; }
+    .section-card h2 { font-size:0.95rem; font-weight:700; margin-bottom:0.25rem; }
+    .section-card .sub { font-size:0.78rem; color:var(--muted); margin-bottom:1.25rem; }
+
+    .tenure-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+    .tenure-table th { text-align:left; font-size:0.7rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; padding:0.5rem 0.75rem; border-bottom:2px solid var(--border); }
+    .tenure-table td { padding:0.65rem 0.75rem; border-bottom:1px solid var(--border); }
+    .tenure-table tr:last-child td { border-bottom:none; }
+    .tenure-table tr.best-row { background:var(--primary-light); }
+    .tenure-table tr.best-row td { font-weight:600; }
+    .best-badge { display:inline-block; background:var(--primary); color:white; font-size:0.65rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:100px; margin-left:0.4rem; vertical-align:middle; }
+    .safe-dot        { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; }
+    .safe-dot.safe   { background:#10b981; }
+    .safe-dot.unsafe { background:#ef4444; }
+    .status-safe     { color:#059669; font-weight:600; font-size:0.78rem; }
+    .status-unsafe   { color:#dc2626; font-weight:600; font-size:0.78rem; }
+
+    /* EMI CALCULATOR */
+    .calc-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+    .calc-inputs { display:flex; flex-direction:column; gap:1rem; }
+    .calc-group label { font-size:0.82rem; font-weight:500; margin-bottom:0.4rem; display:block; }
+    .calc-group input, .calc-group select {
+      width:100%; padding:0.65rem 0.9rem;
+      border:1.5px solid var(--border); border-radius:10px;
+      font-size:0.875rem; font-family:'DM Sans',sans-serif;
+      color:var(--text); background:var(--surface);
+      transition:border-color 0.2s; outline:none;
+    }
+    .calc-group input:focus, .calc-group select:focus { border-color:var(--primary); }
+    .calc-result { background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:1.25rem; display:flex; flex-direction:column; gap:0.75rem; }
+    .calc-result-row { display:flex; justify-content:space-between; font-size:0.85rem; padding:0.35rem 0; border-bottom:1px solid var(--border); }
+    .calc-result-row:last-child { border-bottom:none; }
+    .calc-result-row .label { color:var(--muted); }
+    .calc-result-row .value { font-weight:700; font-family:'DM Mono',monospace; }
+    .calc-result-row.highlight .value { color:var(--primary); font-size:1.1rem; }
+    .calc-btn { background:var(--primary); color:white; border:none; border-radius:10px; padding:0.7rem; font-size:0.875rem; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; margin-top:0.5rem; }
+    .calc-btn:hover { background:var(--primary-dark); transform:translateY(-1px); }
+
+    /* GAP ANALYSIS */
+    .gap-card { background:#fffbeb; border:1px solid #fde68a; border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:1.25rem; }
+    .gap-card h3 { font-size:0.9rem; font-weight:700; color:#92400e; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem; }
+    .gap-reason { font-size:0.82rem; color:#78350f; padding:0.35rem 0; border-bottom:1px solid #fde68a; display:flex; align-items:flex-start; gap:0.5rem; }
+    .gap-reason:last-child { border-bottom:none; }
+
+    /* TIPS */
+    .tips-list { display:flex; flex-direction:column; gap:0.6rem; }
+    .tip-item { display:flex; align-items:flex-start; gap:0.75rem; background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:0.85rem 1rem; font-size:0.82rem; line-height:1.5; }
+    .tip-icon { font-size:1.1rem; flex-shrink:0; margin-top:1px; }
+
+    .actions { display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:1.5rem; }
+
+    @media(max-width:640px) {
+      .offer-amount { font-size:2.5rem; }
+      .csr-breakdown { grid-template-columns:1fr 1fr; }
+      .calc-grid { grid-template-columns:1fr; }
+      .offer-stats { gap:1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo"><div class="logo-icon">&#x20B9;</div>SMECreditAI</a>
+  <div style="display:flex;gap:0.75rem;">
+    <a href="/score/result/{{ application.id }}" class="btn btn-outline">&#x2190; Score Report</a>
+    <a href="/dashboard" class="btn btn-primary">Dashboard</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <h1>&#x1F4B0; Loan Amount Optimizer</h1>
+    <p>Application #{{ application.id }} &mdash; {{ application.business_name }}</p>
+  </div>
+
+  <!-- OFFER HERO -->
+  <div class="offer-card">
+    <div class="offer-inner">
+      <div class="offer-label">AI Recommended Loan Offer</div>
+
+      <div class="requested-vs">
+        You requested: <strong>Rs.{{ result.requested_amount }}L</strong>
+        &nbsp;&#x2192;&nbsp;
+        {% if result.recommended_amount == result.requested_amount %}
+        &#x2705; Full amount approved
+        {% else %}
+        Optimized to: <strong>Rs.{{ result.recommended_amount }}L</strong>
+        {% endif %}
+      </div>
+
+      <div class="offer-amount">
+        <span>Rs.</span>{{ result.recommended_amount }}<span>L</span>
+      </div>
+      <div class="offer-sub">
+        Recommended at {{ result.annual_rate }}% p.a. &mdash; {{ result.risk_category }} Risk Profile
+      </div>
+
+      <div class="offer-stats">
+        <div class="offer-stat">
+          <div class="offer-stat-val">Rs.{{ result.recommended_emi }}L/mo</div>
+          <div class="offer-stat-lbl">Monthly EMI</div>
+        </div>
+        <div class="offer-stat">
+          <div class="offer-stat-val">{{ result.recommended_tenure }} months</div>
+          <div class="offer-stat-lbl">Recommended Tenure</div>
+        </div>
+        <div class="offer-stat">
+          <div class="offer-stat-val">Rs.{{ result.total_interest }}L</div>
+          <div class="offer-stat-lbl">Total Interest</div>
+        </div>
+        <div class="offer-stat">
+          <div class="offer-stat-val">Rs.{{ result.total_payment }}L</div>
+          <div class="offer-stat-lbl">Total Repayment</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASHFLOW SAFETY RATIO -->
+  <div class="csr-section">
+    <h2>&#x1F4CA; Cash Flow Safety Ratio</h2>
+    <p class="sub">CSR = Monthly Credits / (Debits + Existing EMI + New EMI). Must be &gt;1.25 to be considered safe.</p>
+
+    <div class="csr-value-row">
+      <div class="csr-big" id="csrDisplay">0.00</div>
+      <span class="csr-status {{ result.safety_status }}">
+        {% if result.safety_status == 'Safe' %}&#x2705;
+        {% elif result.safety_status == 'Caution' %}&#x26A0;&#xFE0F;
+        {% else %}&#x274C;{% endif %}
+        {{ result.safety_status }}
+      </span>
+    </div>
+
+    <div class="csr-meter-wrap">
+      <div class="csr-track">
+        <div class="csr-fill {{ result.safety_status | lower }}"
+             id="csrBar"
+             data-width="{{ [result.cashflow_safety_ratio / 2.5 * 100, 100] | min | round | int }}">
+        </div>
+      </div>
+      <div class="csr-markers">
+        <span>0</span><span>Risky &lt;1.0</span><span>Caution 1.25</span><span>Safe &gt;1.5</span><span>2.5+</span>
+      </div>
+    </div>
+
+    <div class="csr-breakdown">
+      <div class="csr-item">
+        <div class="csr-item-val">Rs.{{ application.monthly_credits }}L</div>
+        <div class="csr-item-lbl">Monthly Credits</div>
+      </div>
+      <div class="csr-item">
+        <div class="csr-item-val">Rs.{{ application.monthly_debits }}L</div>
+        <div class="csr-item-lbl">Monthly Debits</div>
+      </div>
+      <div class="csr-item">
+        <div class="csr-item-val">Rs.{{ application.existing_loan_emi }}L</div>
+        <div class="csr-item-lbl">Existing EMI</div>
+      </div>
+      <div class="csr-item">
+        <div class="csr-item-val">Rs.{{ result.recommended_emi }}L</div>
+        <div class="csr-item-lbl">New EMI</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TENURE COMPARISON TABLE -->
+  <div class="section-card">
+    <h2>&#x1F4C5; Tenure Comparison</h2>
+    <p class="sub">Compare EMI, total cost, and cash flow safety across all available tenures for Rs.{{ result.recommended_amount }}L at {{ result.annual_rate }}% p.a.</p>
+    <table class="tenure-table">
+      <thead>
+        <tr>
+          <th>Tenure</th>
+          <th>Monthly EMI</th>
+          <th>Total Payment</th>
+          <th>Total Interest</th>
+          <th>Cash Flow Safety</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in result.tenure_table %}
+        <tr class="{{ 'best-row' if t.recommended else '' }}">
+          <td>
+            {{ t.months }} months
+            {% if t.recommended %}<span class="best-badge">Best</span>{% endif %}
+          </td>
+          <td>Rs.{{ t.emi }}L</td>
+          <td>Rs.{{ t.total_payment }}L</td>
+          <td>Rs.{{ t.total_interest }}L</td>
+          <td>
+            <span class="safe-dot {{ 'safe' if t.safe else 'unsafe' }}"></span>
+            {{ t.cashflow_safety_ratio }}x
+          </td>
+          <td class="{{ 'status-safe' if t.safe else 'status-unsafe' }}">
+            {{ 'Safe' if t.safe else 'Risky' }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- EMI CALCULATOR -->
+  <div class="section-card">
+    <h2>&#x1F9EE; Custom EMI Calculator</h2>
+    <p class="sub">Adjust loan amount, rate, and tenure to explore different scenarios.</p>
+    <div class="calc-grid">
+      <div class="calc-inputs">
+        <div class="calc-group">
+          <label>Loan Amount (Rs. Lakhs)</label>
+          <input type="number" id="calcAmount" value="{{ result.recommended_amount }}" min="0.1" step="0.1"/>
+        </div>
+        <div class="calc-group">
+          <label>Annual Interest Rate (%)</label>
+          <input type="number" id="calcRate" value="{{ result.annual_rate }}" min="1" max="36" step="0.1"/>
+        </div>
+        <div class="calc-group">
+          <label>Tenure (Months)</label>
+          <select id="calcTenure">
+            {% for t in result.tenure_table %}
+            <option value="{{ t.months }}" {{ 'selected' if t.recommended else '' }}>{{ t.months }} months</option>
+            {% endfor %}
+            <option value="72">72 months</option>
+            <option value="84">84 months</option>
+          </select>
+        </div>
+        <button class="calc-btn" onclick="calculateEMI()">Calculate EMI</button>
+      </div>
+
+      <div class="calc-result" id="calcResult">
+        <div class="calc-result-row highlight">
+          <span class="label">Monthly EMI</span>
+          <span class="value" id="resultEMI">—</span>
+        </div>
+        <div class="calc-result-row">
+          <span class="label">Total Payment</span>
+          <span class="value" id="resultTotal">—</span>
+        </div>
+        <div class="calc-result-row">
+          <span class="label">Total Interest</span>
+          <span class="value" id="resultInterest">—</span>
+        </div>
+        <div class="calc-result-row">
+          <span class="label">Interest %</span>
+          <span class="value" id="resultPct">—</span>
+        </div>
+        <div class="calc-result-row">
+          <span class="label">Cash Flow Safety</span>
+          <span class="value" id="resultCSR">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAP ANALYSIS -->
+  {% if result.gap > 0 %}
+  <div class="gap-card">
+    <h3>&#x26A0;&#xFE0F; Gap Analysis — Why Rs.{{ result.gap }}L was reduced</h3>
+    {% for reason in result.gap_reasons %}
+    <div class="gap-reason">&#x2022; {{ reason }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- IMPROVEMENT TIPS -->
+  <div class="section-card">
+    <h2>&#x1F4A1; How to Improve Your Loan Eligibility</h2>
+    <p class="sub">Personalised tips based on your financial profile.</p>
+    <div class="tips-list">
+      {% for tip in result.improvement_tips %}
+      <div class="tip-item">
+        <span class="tip-icon">&#x1F4CC;</span>
+        <span>{{ tip }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="actions">
+    <a href="/score/result/{{ application.id }}" class="btn btn-primary">&#x2190; Back to Score Report</a>
+    <a href="/loan/my-applications" class="btn btn-outline">My Applications</a>
+    <a href="/loan/apply" class="btn btn-outline">+ New Application</a>
+  </div>
+
+</div>
+
+<script>
+  // ── JS constants from Flask (safely typed) ──────────────────────────────────
+  var MONTHLY_CREDITS  = parseFloat("{{ application.monthly_credits }}") || 0;
+  var MONTHLY_DEBITS   = parseFloat("{{ application.monthly_debits }}")  || 0;
+  var EXISTING_EMI     = parseFloat("{{ application.existing_loan_emi }}") || 0;
+  var FINAL_CSR        = parseFloat("{{ result.cashflow_safety_ratio }}") || 0;
+
+  // ── CSR display animation ───────────────────────────────────────────────────
+  var csrEl  = document.getElementById('csrDisplay');
+  var csrBar = document.getElementById('csrBar');
+  var targetWidth = parseInt(csrBar.getAttribute('data-width'), 10) || 0;
+
+  setTimeout(function () {
+    csrBar.style.transition = 'width 1s ease';
+    csrBar.style.width = targetWidth + '%';
+
+    // Animate CSR number
+    var start = 0, duration = 1000, startTime = null;
+    function animateCSR(ts) {
+      if (!startTime) startTime = ts;
+      var prog = Math.min((ts - startTime) / duration, 1);
+      var val  = prog * FINAL_CSR;
+      csrEl.textContent = val.toFixed(2);
+      if (prog < 1) requestAnimationFrame(animateCSR);
+      else csrEl.textContent = FINAL_CSR.toFixed(2);
+    }
+    requestAnimationFrame(animateCSR);
+  }, 300);
+
+  // ── EMI Calculator ──────────────────────────────────────────────────────────
+  function emi(P, annualRate, months) {
+    if (annualRate === 0) return P / months;
+    var r = annualRate / 100 / 12;
+    return P * r * Math.pow(1 + r, months) / (Math.pow(1 + r, months) - 1);
+  }
+
+  function calculateEMI() {
+    var P       = parseFloat(document.getElementById('calcAmount').value)  || 0;
+    var rate    = parseFloat(document.getElementById('calcRate').value)    || 0;
+    var months  = parseInt(document.getElementById('calcTenure').value, 10) || 12;
+
+    var monthlyEMI = emi(P, rate, months);
+    var total      = monthlyEMI * months;
+    var interest   = total - P;
+    var pct        = P > 0 ? (interest / P * 100) : 0;
+    var csr        = MONTHLY_CREDITS / (MONTHLY_DEBITS + EXISTING_EMI + monthlyEMI + 0.001);
+
+    document.getElementById('resultEMI').textContent      = 'Rs.' + monthlyEMI.toFixed(3) + 'L';
+    document.getElementById('resultTotal').textContent    = 'Rs.' + total.toFixed(2) + 'L';
+    document.getElementById('resultInterest').textContent = 'Rs.' + interest.toFixed(2) + 'L';
+    document.getElementById('resultPct').textContent      = pct.toFixed(1) + '%';
+    document.getElementById('resultCSR').textContent      = csr.toFixed(3) + 'x';
+
+    var csrEl = document.getElementById('resultCSR');
+    csrEl.style.color = csr >= 1.25 ? '#059669' : csr >= 1.0 ? '#d97706' : '#dc2626';
+  }
+
+  // Run on load to populate
+  calculateEMI();
+</script>
+
+</body>
+</html>

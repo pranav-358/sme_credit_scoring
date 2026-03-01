@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Applications | SMECreditAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root { --primary:#1a56db; --bg:#f1f5f9; --surface:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --green:#10b981; --amber:#f59e0b; --red:#ef4444; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    nav { background:var(--surface); border-bottom:1px solid var(--border); padding:0 2rem; height:64px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .logo { font-weight:700; font-size:1.1rem; color:var(--primary); text-decoration:none; display:flex; align-items:center; gap:8px; }
+    .logo-icon { width:34px; height:34px; background:linear-gradient(135deg,#1a56db,#06b6d4); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-size:0.9rem; font-weight:700; }
+    .btn { padding:0.45rem 1rem; border-radius:8px; font-size:0.85rem; font-weight:500; cursor:pointer; border:none; transition:all 0.2s; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-family:'DM Sans',sans-serif; }
+    .btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--text); }
+    .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+    .btn-primary { background:var(--primary); color:white; }
+    .btn-primary:hover { background:#1e40af; transform:translateY(-1px); }
+
+    .page { max-width:900px; margin:0 auto; padding:2.5rem 2rem; }
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
+    .page-header h1 { font-size:1.3rem; font-weight:700; }
+    .page-header p { color:var(--muted); font-size:0.875rem; margin-top:0.2rem; }
+
+    /* APP CARDS */
+    .app-list { display:flex; flex-direction:column; gap:1rem; }
+    .app-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.5rem; transition:all 0.2s; }
+    .app-card:hover { box-shadow:0 6px 24px rgba(0,0,0,0.07); transform:translateY(-1px); }
+
+    .app-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem; }
+    .app-card-title { font-size:1rem; font-weight:700; margin-bottom:0.2rem; }
+    .app-card-sub { font-size:0.78rem; color:var(--muted); }
+    .badges { display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; }
+
+    .badge { display:inline-block; padding:0.22rem 0.7rem; border-radius:100px; font-size:0.7rem; font-weight:600; }
+    .badge-pending  { background:#fef9c3; color:#854d0e; }
+    .badge-approved { background:#f0fdf4; color:#059669; }
+    .badge-rejected { background:#fef2f2; color:#dc2626; }
+    .badge-Low    { background:#f0fdf4; color:#059669; }
+    .badge-Medium { background:#fff7ed; color:#c2410c; }
+    .badge-High   { background:#fef2f2; color:#dc2626; }
+
+    .app-card-body { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:0.75rem; padding:1rem 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin-bottom:1rem; }
+    .meta-item-lbl { font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.2rem; }
+    .meta-item-val { font-size:0.875rem; font-weight:600; }
+
+    /* SCORE DISPLAY */
+    .score-display { display:flex; align-items:center; gap:0.5rem; }
+    .score-num { font-family:'DM Mono',monospace; font-size:1.3rem; font-weight:600; }
+    .sc-green { color:#10b981; }
+    .sc-amber { color:#f59e0b; }
+    .sc-red   { color:#ef4444; }
+    .fill-green { background:#10b981; }
+    .fill-amber { background:#f59e0b; }
+    .fill-red   { background:#ef4444; }
+    .score-track { width:60px; height:5px; background:var(--border); border-radius:3px; overflow:hidden; }
+    .score-fill  { height:100%; border-radius:3px; width:0%; transition:width 0.8s ease; }
+
+    .app-card-actions { display:flex; gap:0.6rem; flex-wrap:wrap; }
+
+    /* EMPTY */
+    .empty-state { background:var(--surface); border:1px dashed var(--border); border-radius:14px; padding:4rem 2rem; text-align:center; }
+    .empty-state .icon { font-size:3rem; margin-bottom:1rem; }
+    .empty-state h2 { font-size:1.1rem; margin-bottom:0.5rem; }
+    .empty-state p { color:var(--muted); font-size:0.875rem; margin-bottom:1.5rem; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo"><div class="logo-icon">&#x20B9;</div>SMECreditAI</a>
+  <div style="display:flex;gap:0.75rem;">
+    <a href="/dashboard" class="btn btn-outline">Dashboard</a>
+    <a href="/loan/apply" class="btn btn-primary">&#x2B; Apply</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>My Applications</h1>
+      <p>{{ applications | length }} application{{ 's' if applications | length != 1 else '' }} found</p>
+    </div>
+    <a href="/loan/apply" class="btn btn-primary">&#x2B; New Application</a>
+  </div>
+
+  {% if applications %}
+  <div class="app-list">
+    {% for app in applications %}
+    <div class="app-card">
+      <div class="app-card-top">
+        <div>
+          <div class="app-card-title">{{ app.business_name }}</div>
+          <div class="app-card-sub">App #{{ app.id }} &bull; {{ app.submitted_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+        </div>
+        <div class="badges">
+          {% if app.risk_category %}<span class="badge badge-{{ app.risk_category }}">{{ app.risk_category }} Risk</span>{% endif %}
+          <span class="badge badge-{{ app.status }}">{{ app.status.title() }}</span>
+        </div>
+      </div>
+
+      <div class="app-card-body">
+        <div>
+          <div class="meta-item-lbl">Industry</div>
+          <div class="meta-item-val">{{ app.industry }}</div>
+        </div>
+        <div>
+          <div class="meta-item-lbl">Loan Requested</div>
+          <div class="meta-item-val">&#x20B9;{{ app.loan_amount_requested }}L</div>
+        </div>
+        <div>
+          <div class="meta-item-lbl">Annual Turnover</div>
+          <div class="meta-item-val">&#x20B9;{{ app.annual_turnover }}L</div>
+        </div>
+        <div>
+          <div class="meta-item-lbl">AI Credit Score</div>
+          <div class="meta-item-val">
+            {% if app.ai_credit_score %}
+            <div class="score-display">
+              <span class="score-num {% if app.ai_credit_score >= 720 %}sc-green{% elif app.ai_credit_score >= 580 %}sc-amber{% else %}sc-red{% endif %}">
+                {{ app.ai_credit_score }}
+              </span>
+              <div class="score-track">
+                <div class="score-fill {% if app.ai_credit_score >= 720 %}fill-green{% elif app.ai_credit_score >= 580 %}fill-amber{% else %}fill-red{% endif %}"
+                     data-pct="{{ ((app.ai_credit_score - 300) / 600 * 100) | round | int }}">
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <span style="color:var(--muted);">Not scored</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="app-card-actions">
+        {% if app.ai_credit_score %}
+        <a href="/score/result/{{ app.id }}" class="btn btn-primary">&#x1F4CA; Score Report</a>
+        <a href="/optimize/{{ app.id }}" class="btn btn-outline">&#x1F4B0; Optimizer</a>
+        {% else %}
+        <a href="/score/run/{{ app.id }}" class="btn btn-primary">&#x26A1; Generate Score</a>
+        {% endif %}
+
+        <a href="/report/pdf/{{ app.id }}" class="btn btn-outline">📋 PDF</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="icon">&#x1F4C2;</div>
+    <h2>No applications yet</h2>
+    <p>Submit your first loan application to get an AI credit score and loan recommendation.</p>
+    <a href="/loan/apply" class="btn btn-primary">Apply for a Loan &#x2192;</a>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+  setTimeout(function () {
+    document.querySelectorAll('.score-fill').forEach(function (el) {
+      el.style.transition = 'width 0.8s ease';
+      el.style.width = (el.getAttribute('data-pct') || '0') + '%';
+    });
+  }, 200);
+</script>
+
+</body>
+</html>

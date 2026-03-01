@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | SMECreditAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root { --primary:#1a56db; --primary-dark:#1e40af; --bg:#f1f5f9; --surface:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; --green:#10b981; --amber:#f59e0b; --red:#ef4444; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    nav { background:var(--surface); border-bottom:1px solid var(--border); padding:0 2rem; height:64px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+    .logo { font-weight:700; font-size:1.1rem; color:var(--primary); text-decoration:none; display:flex; align-items:center; gap:8px; }
+    .logo-icon { width:34px; height:34px; background:linear-gradient(135deg,#1a56db,#06b6d4); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-size:0.9rem; font-weight:700; }
+    .nav-right { display:flex; align-items:center; gap:1rem; }
+    .user-chip { display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; }
+    .avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--primary),#06b6d4); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; }
+    .role-badge { display:inline-block; padding:0.2rem 0.65rem; border-radius:100px; font-size:0.7rem; font-weight:600; background:#eff6ff; color:var(--primary); }
+    .btn { padding:0.45rem 1rem; border-radius:8px; font-size:0.85rem; font-weight:500; cursor:pointer; border:none; transition:all 0.2s; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-family:'DM Sans',sans-serif; }
+    .btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--text); }
+    .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+    .btn-primary { background:var(--primary); color:white; }
+    .btn-primary:hover { background:var(--primary-dark); transform:translateY(-1px); }
+
+    .page { max-width:1100px; margin:0 auto; padding:2.5rem 2rem; }
+
+    /* WELCOME BANNER */
+    .welcome-banner {
+      background:linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #1a56db 100%);
+      border-radius:18px; padding:2rem 2.5rem; margin-bottom:2rem;
+      color:white; position:relative; overflow:hidden;
+    }
+    .welcome-banner::before { content:''; position:absolute; width:280px; height:280px; border-radius:50%; background:rgba(6,182,212,0.12); top:-100px; right:-60px; }
+    .welcome-banner::after  { content:''; position:absolute; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,0.05); bottom:-60px; left:40px; }
+    .welcome-inner { position:relative; z-index:1; }
+    .welcome-banner h1 { font-size:1.5rem; font-weight:700; margin-bottom:0.35rem; }
+    .welcome-banner p  { font-size:0.875rem; color:rgba(255,255,255,0.65); }
+    .welcome-actions { display:flex; gap:0.75rem; margin-top:1.5rem; flex-wrap:wrap; }
+    .btn-white { background:white; color:var(--primary); font-weight:600; }
+    .btn-white:hover { background:#f0f9ff; transform:translateY(-1px); }
+    .btn-ghost { background:rgba(255,255,255,0.12); color:white; border:1px solid rgba(255,255,255,0.2); }
+    .btn-ghost:hover { background:rgba(255,255,255,0.2); }
+
+    /* STATS ROW */
+    .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.25rem 1.5rem; transition:box-shadow 0.2s; }
+    .stat-card:hover { box-shadow:0 4px 20px rgba(0,0,0,0.07); }
+    .stat-icon { font-size:1.3rem; margin-bottom:0.5rem; }
+    .stat-val  { font-size:1.6rem; font-weight:700; font-family:'DM Mono',monospace; line-height:1; }
+    .stat-lbl  { font-size:0.72rem; color:var(--muted); margin-top:0.25rem; font-weight:500; }
+    .stat-card.c-blue   .stat-val { color:var(--primary); }
+    .stat-card.c-green  .stat-val { color:var(--green); }
+    .stat-card.c-amber  .stat-val { color:var(--amber); }
+    .stat-card.c-red    .stat-val { color:var(--red); }
+
+    /* ACTION CARDS */
+    .section-label { font-size:0.78rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:1rem; }
+    .action-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .action-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.5rem; transition:all 0.2s; text-decoration:none; color:var(--text); display:block; }
+    .action-card:hover { box-shadow:0 6px 24px rgba(0,0,0,0.08); transform:translateY(-2px); border-color:var(--primary); }
+    .action-icon  { font-size:1.75rem; margin-bottom:0.75rem; }
+    .action-title { font-weight:600; font-size:0.95rem; margin-bottom:0.25rem; }
+    .action-desc  { font-size:0.78rem; color:var(--muted); line-height:1.5; }
+    .action-arrow { display:flex; align-items:center; justify-content:space-between; margin-top:1rem; font-size:0.78rem; color:var(--primary); font-weight:600; }
+
+    /* RECENT APPS */
+    .recent-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+    .recent-header { padding:1rem 1.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .recent-header h2 { font-size:0.9rem; font-weight:700; }
+    .app-row { display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1.5rem; border-bottom:1px solid var(--border); transition:background 0.15s; text-decoration:none; color:var(--text); }
+    .app-row:last-child { border-bottom:none; }
+    .app-row:hover { background:#f8fafc; }
+    .app-info { }
+    .app-name { font-weight:600; font-size:0.875rem; }
+    .app-meta { font-size:0.75rem; color:var(--muted); margin-top:0.15rem; }
+    .app-right { display:flex; align-items:center; gap:0.75rem; }
+    .badge { display:inline-block; padding:0.2rem 0.65rem; border-radius:100px; font-size:0.7rem; font-weight:600; }
+    .badge-pending  { background:#fef9c3; color:#854d0e; }
+    .badge-approved { background:#f0fdf4; color:#059669; }
+    .badge-rejected { background:#fef2f2; color:#dc2626; }
+    .score-pill { font-family:'DM Mono',monospace; font-size:0.85rem; font-weight:600; }
+    .sc-green { color:#10b981; }
+    .sc-amber { color:#f59e0b; }
+    .sc-red   { color:#ef4444; }
+    .empty-recent { padding:3rem; text-align:center; color:var(--muted); }
+    .empty-recent .icon { font-size:2.5rem; margin-bottom:0.75rem; }
+    .empty-recent p { font-size:0.875rem; margin-bottom:1.25rem; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo"><div class="logo-icon">&#x20B9;</div>SMECreditAI</a>
+  <div class="nav-right">
+    <div class="user-chip">
+      <div class="avatar">{{ user.full_name[0].upper() }}</div>
+      <span style="font-weight:500;">{{ user.full_name }}</span>
+      <span class="role-badge">{{ user.role.title() }}</span>
+    </div>
+    <a href="/auth/logout" class="btn btn-outline">Logout</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- WELCOME BANNER -->
+  <div class="welcome-banner">
+    <div class="welcome-inner">
+      <h1>Welcome back, {{ user.full_name.split()[0] }}! &#x1F44B;</h1>
+      <p>Your AI-powered SME credit scoring dashboard. Everything you need in one place.</p>
+      <div class="welcome-actions">
+        <a href="/loan/apply" class="btn btn-white">&#x2B; New Application</a>
+        <a href="/loan/my-applications" class="btn btn-ghost">My Applications</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE STATS -->
+  {% set apps = current_user.applications %}
+  {% set scored = apps | selectattr('ai_credit_score') | list %}
+  <div class="stats-row">
+    <div class="stat-card c-blue">
+      <div class="stat-icon">&#x1F4CB;</div>
+      <div class="stat-val">{{ apps | length }}</div>
+      <div class="stat-lbl">Total Applications</div>
+    </div>
+    <div class="stat-card c-amber">
+      <div class="stat-icon">&#x23F3;</div>
+      <div class="stat-val">{{ apps | selectattr('status', 'equalto', 'pending') | list | length }}</div>
+      <div class="stat-lbl">Pending Review</div>
+    </div>
+    <div class="stat-card c-green">
+      <div class="stat-icon">&#x2705;</div>
+      <div class="stat-val">{{ apps | selectattr('status', 'equalto', 'approved') | list | length }}</div>
+      <div class="stat-lbl">Approved</div>
+    </div>
+    <div class="stat-card c-blue">
+      <div class="stat-icon">&#x1F4CA;</div>
+      <div class="stat-val">{{ (scored | map(attribute='ai_credit_score') | list | sum / [scored | length, 1] | max) | round | int if scored else '—' }}</div>
+      <div class="stat-lbl">Avg Credit Score</div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="section-label">Quick Actions</div>
+  <div class="action-grid">
+    <a href="/loan/apply" class="action-card">
+      <div class="action-icon">&#x1F4DD;</div>
+      <div class="action-title">Apply for Loan</div>
+      <div class="action-desc">Submit a new application with your full business and financial details.</div>
+      <div class="action-arrow"><span>Start application</span><span>&#x2192;</span></div>
+    </a>
+    <a href="/loan/my-applications" class="action-card">
+      <div class="action-icon">&#x1F4C1;</div>
+      <div class="action-title">My Applications</div>
+      <div class="action-desc">Track status, view scores and access SHAP reports for all applications.</div>
+      <div class="action-arrow"><span>View all</span><span>&#x2192;</span></div>
+    </a>
+    {% if scored %}
+    <a href="/score/result/{{ scored[-1].id }}" class="action-card">
+      <div class="action-icon">&#x1F3AF;</div>
+      <div class="action-title">Latest Score Report</div>
+      <div class="action-desc">View your most recent AI credit score with SHAP explanation.</div>
+      <div class="action-arrow"><span>View report</span><span>&#x2192;</span></div>
+    </a>
+    <a href="/optimize/{{ scored[-1].id }}" class="action-card">
+      <div class="action-icon">&#x1F4B0;</div>
+      <div class="action-title">Loan Optimizer</div>
+      <div class="action-desc">Find the best loan amount, tenure and EMI for your cash flow profile.</div>
+      <div class="action-arrow"><span>Optimise now</span><span>&#x2192;</span></div>
+    </a>
+    {% else %}
+    <div class="action-card" style="opacity:0.5;cursor:default;">
+      <div class="action-icon">&#x1F3AF;</div>
+      <div class="action-title">Credit Score</div>
+      <div class="action-desc">Submit an application to generate your AI credit score.</div>
+    </div>
+    <div class="action-card" style="opacity:0.5;cursor:default;">
+      <div class="action-icon">&#x1F4B0;</div>
+      <div class="action-title">Loan Optimizer</div>
+      <div class="action-desc">Available after your first application is scored.</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- RECENT APPLICATIONS -->
+  <div class="section-label">Recent Applications</div>
+  <div class="recent-card">
+    <div class="recent-header">
+      <h2>Applications</h2>
+      <a href="/loan/my-applications" style="font-size:0.8rem;color:var(--primary);text-decoration:none;font-weight:500;">View all &#x2192;</a>
+    </div>
+    {% set recent = apps | sort(attribute='submitted_at', reverse=True) %}
+    {% if recent %}
+      {% for app in recent[:5] %}
+      <a class="app-row" href="{{ '/score/result/' + app.id|string if app.ai_credit_score else '/loan/my-applications' }}">
+        <div class="app-info">
+          <div class="app-name">{{ app.business_name }}</div>
+          <div class="app-meta">{{ app.industry }} &bull; &#x20B9;{{ app.loan_amount_requested }}L &bull; {{ app.submitted_at.strftime('%d %b %Y') }}</div>
+        </div>
+        <div class="app-right">
+          {% if app.ai_credit_score %}
+          <span class="score-pill {% if app.ai_credit_score >= 720 %}sc-green{% elif app.ai_credit_score >= 580 %}sc-amber{% else %}sc-red{% endif %}">
+            {{ app.ai_credit_score }}
+          </span>
+          {% endif %}
+          <span class="badge badge-{{ app.status }}">{{ app.status.title() }}</span>
+        </div>
+      </a>
+      {% endfor %}
+    {% else %}
+    <div class="empty-recent">
+      <div class="icon">&#x1F4C2;</div>
+      <p>No applications yet. Start your journey by applying for a loan.</p>
+      <a href="/loan/apply" class="btn btn-primary">Apply Now &#x2192;</a>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+</body>
+</html>

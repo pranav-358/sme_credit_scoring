@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Submitted | SMECreditAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root { --primary:#1a56db; --success:#10b981; --bg:#f1f5f9; --surface:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:3rem 2.5rem; max-width:480px; width:100%; text-align:center; box-shadow:0 8px 40px rgba(0,0,0,0.07); animation:pop 0.45s cubic-bezier(0.175,0.885,0.32,1.275); }
+    @keyframes pop { from{opacity:0;transform:scale(0.88)} to{opacity:1;transform:scale(1)} }
+    .spinner-wrap { width:72px; height:72px; margin:0 auto 1.5rem; position:relative; }
+    .spinner { width:100%; height:100%; border:5px solid #e2e8f0; border-top-color:var(--primary); border-radius:50%; animation:spin 0.9s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .check-circle { width:72px; height:72px; background:linear-gradient(135deg,var(--success),#34d399); border-radius:50%; display:none; align-items:center; justify-content:center; margin:0 auto 1.5rem; font-size:2rem; box-shadow:0 6px 20px rgba(16,185,129,0.35); }
+    h1 { font-size:1.4rem; font-weight:700; margin-bottom:0.5rem; }
+    .sub { color:var(--muted); font-size:0.875rem; line-height:1.6; margin-bottom:1.75rem; }
+    .id-badge { background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:0.75rem; font-size:0.85rem; margin-bottom:1.75rem; }
+    .id-badge span { font-weight:700; color:var(--primary); }
+    .progress-bar { height:6px; background:var(--border); border-radius:4px; overflow:hidden; margin-bottom:0.5rem; }
+    .progress-fill { height:100%; width:0%; background:linear-gradient(90deg,var(--primary),#06b6d4); border-radius:4px; transition:width 0.4s ease; }
+    .progress-label { font-size:0.75rem; color:var(--muted); margin-bottom:1.5rem; }
+    .actions { display:flex; gap:0.75rem; justify-content:center; flex-wrap:wrap; }
+    .btn { padding:0.65rem 1.25rem; border-radius:10px; font-size:0.875rem; font-weight:600; cursor:pointer; border:none; text-decoration:none; font-family:'DM Sans',sans-serif; transition:all 0.2s; display:inline-flex; align-items:center; gap:6px; }
+    .btn-primary { background:var(--primary); color:white; display:none; }
+    .btn-primary:hover { background:#1e40af; transform:translateY(-1px); }
+    .btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--text); }
+    .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="spinner-wrap"><div class="spinner" id="spinner"></div></div>
+  <div class="check-circle" id="checkCircle">✓</div>
+
+  <h1 id="cardTitle">Scoring your application...</h1>
+  <p class="sub" id="cardSub">Our AI model is analysing your financials, GST patterns and business profile. This takes just a moment.</p>
+
+  <div class="id-badge">Application ID: <span>#{{ application.id }}</span></div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <p class="progress-label" id="progressLabel">Initialising model...</p>
+
+  <div class="actions">
+    <a href="/score/result/{{ application.id }}" class="btn btn-primary" id="viewScoreBtn">View Credit Score →</a>
+    <a href="/dashboard" class="btn btn-outline">Dashboard</a>
+  </div>
+</div>
+
+<script>
+  const steps = [
+    [15,  'Loading features...'],
+    [35,  'Running Gradient Boosting model...'],
+    [58,  'Computing credit score...'],
+    [78,  'Mapping to 300–900 scale...'],
+    [92,  'Finalising risk category...'],
+    [100, 'Done!'],
+  ];
+
+  let i = 0;
+  const fill  = document.getElementById('progressFill');
+  const label = document.getElementById('progressLabel');
+
+  function animate() {
+    if (i >= steps.length) return;
+    const [pct, msg] = steps[i++];
+    fill.style.width  = pct + '%';
+    label.textContent = msg;
+    if (i < steps.length) setTimeout(animate, 600);
+  }
+
+  animate();
+
+  // After animation, hit the scoring endpoint then reveal result button
+  setTimeout(() => {
+    fetch('/score/run/{{ application.id }}', { method: 'GET', redirect: 'manual' })
+      .finally(() => {
+        document.getElementById('spinner').style.display = 'none';
+        const cc = document.getElementById('checkCircle');
+        cc.style.display = 'flex';
+        document.getElementById('cardTitle').textContent = 'Score Ready!';
+        document.getElementById('cardSub').textContent   = 'Your AI credit score has been generated. View the detailed breakdown below.';
+        document.getElementById('viewScoreBtn').style.display = 'inline-flex';
+      });
+  }, 3500);
+</script>
+</body>
+</html>

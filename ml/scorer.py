@@ -22,14 +22,21 @@ SCORE_BANDS = [
 ]
 
 
+# ── Module-level cache — load once, reuse forever ─────────────────────────────
+_MODEL_CACHE  = {}
+
 def _load(path):
+    if path in _MODEL_CACHE:
+        return _MODEL_CACHE[path]
     if not os.path.exists(path):
         raise FileNotFoundError(
             f"File not found: {path}\n"
             "Run: python ml/train_model.py"
         )
     with open(path, 'rb') as fh:
-        return pickle.load(fh)
+        obj = pickle.load(fh)
+    _MODEL_CACHE[path] = obj
+    return obj
 
 
 def probability_to_score(prob: float) -> int:

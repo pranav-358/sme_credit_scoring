@@ -64,9 +64,15 @@ DISPLAY_NAMES = {
 }
 
 
+_EXPLAINER_CACHE = {}
+
 def _load(path):
+    if path in _EXPLAINER_CACHE:
+        return _EXPLAINER_CACHE[path]
     with open(path, 'rb') as f:
-        return pickle.load(f)
+        obj = pickle.load(f)
+    _EXPLAINER_CACHE[path] = obj
+    return obj
 
 
 def _permutation_contributions(model, scaler, feature_array: np.ndarray,
@@ -107,7 +113,10 @@ def _shap_contributions(model, scaler, feature_array: np.ndarray,
     """Real SHAP TreeExplainer — used when shap package is available."""
     import shap
     X_scaled   = scaler.transform(feature_array)
-    explainer  = shap.TreeExplainer(model)
+    cache_key = 'shap_explainer'
+    if cache_key not in _EXPLAINER_CACHE:
+        _EXPLAINER_CACHE[cache_key] = shap.TreeExplainer(model)
+    explainer  = _EXPLAINER_CACHE[cache_key]
     shap_vals  = explainer.shap_values(X_scaled)
 
     # For binary classifiers shap_values returns [neg_class, pos_class]

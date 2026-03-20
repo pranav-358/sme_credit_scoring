@@ -1,8 +1,8 @@
 ---
 title: SMECreditAI
-emoji: 🏦
-colorFrom: blue
-colorTo: cyan
 sdk: docker
+emoji: 💰
+colorFrom: blue
+colorTo: indigo
 pinned: false
 ---

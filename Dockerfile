@@ -19,6 +19,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy entire project
 COPY . .
 
+# Create required directories
+RUN mkdir -p ml/data ml/saved_models instance
+
 # Generate dataset and train model
 RUN python ml/generate_dataset.py && python ml/train_model.py
 

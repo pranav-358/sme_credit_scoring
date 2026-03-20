@@ -32,7 +32,8 @@ def register():
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
-            login_user(user)
+            login_user(user, remember=True)
+            session.permanent = True
             return redirect(url_for('main.dashboard'))
 
     return render_template('register.html', error=error)

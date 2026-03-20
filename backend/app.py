@@ -5,6 +5,7 @@ if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 from extensions import db, login_manager, mail
 
@@ -21,12 +22,16 @@ def create_app():
         static_url_path='/static'
     )
 
+    # Fix for running behind Hugging Face reverse proxy
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
     # SECRET_KEY — fallback ensures sessions always work even without env var
     secret = os.environ.get('SECRET_KEY') or os.getenv('SECRET_KEY', 'SMECreditAI-fallback-key-2026-xyz')
     app.config['SECRET_KEY'] = secret
     app.config['SESSION_COOKIE_SECURE']   = False
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_NAME']     = 'smecreditai_session'
     app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
     # Use PostgreSQL on Railway (DATABASE_URL set automatically),
     # fall back to SQLite locally

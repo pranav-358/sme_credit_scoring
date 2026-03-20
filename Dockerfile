@@ -34,6 +34,8 @@ EXPOSE 7860
 # Set environment variables
 ENV PORT=7860
 ENV PYTHONPATH=/app/backend
+ENV SECRET_KEY=SMECreditAI-HuggingFace-2026-SecretKey-xyz
+ENV FLASK_ENV=production
 
 # Start gunicorn
 CMD ["gunicorn", "--chdir", "backend", "app:create_app()", "--bind", "0.0.0.0:7860", "--workers", "1", "--timeout", "120"]

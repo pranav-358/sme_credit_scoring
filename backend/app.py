@@ -21,7 +21,13 @@ def create_app():
         static_url_path='/static'
     )
 
-    app.config['SECRET_KEY']                     = os.getenv('SECRET_KEY', 'dev-secret-key')
+    # SECRET_KEY — fallback ensures sessions always work even without env var
+    secret = os.environ.get('SECRET_KEY') or os.getenv('SECRET_KEY', 'SMECreditAI-fallback-key-2026-xyz')
+    app.config['SECRET_KEY'] = secret
+    app.config['SESSION_COOKIE_SECURE']   = False
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
     # Use PostgreSQL on Railway (DATABASE_URL set automatically),
     # fall back to SQLite locally
     database_url = os.getenv('DATABASE_URL')

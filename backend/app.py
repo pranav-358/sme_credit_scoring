@@ -12,10 +12,13 @@ load_dotenv()
 
 
 def create_app():
+    # Support both direct run and Vercel serverless
+    BASE_DIR = os.path.normpath(os.path.join(BACKEND_DIR, '..'))
     app = Flask(
         __name__,
-        template_folder=os.path.join(BACKEND_DIR, '..', 'frontend', 'pages'),
-        static_folder=os.path.join(BACKEND_DIR,   '..', 'frontend', 'assets')
+        template_folder=os.path.join(BASE_DIR, 'frontend', 'pages'),
+        static_folder=os.path.join(BASE_DIR,   'frontend', 'assets'),
+        static_url_path='/static'
     )
 
     app.config['SECRET_KEY']                     = os.getenv('SECRET_KEY', 'dev-secret-key')
@@ -26,9 +29,10 @@ def create_app():
         # Railway gives postgres:// but SQLAlchemy needs postgresql://
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     else:
-        database_url = 'sqlite:///' + os.path.normpath(
-            os.path.join(BACKEND_DIR, '..', 'instance', 'sme_credit.db')
-        )
+        # Ensure instance folder exists for SQLite
+        instance_dir = os.path.normpath(os.path.join(BACKEND_DIR, '..', 'instance'))
+        os.makedirs(instance_dir, exist_ok=True)
+        database_url = 'sqlite:///' + os.path.join(instance_dir, 'sme_credit.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
